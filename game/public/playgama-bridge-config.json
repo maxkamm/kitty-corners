@@ -1,0 +1,14 @@
+{
+  "advertisement": {
+    "useBuiltInErrorPopup": true,
+    "interstitial": {
+      "preloadOnStart": true
+    },
+    "rewarded": {
+      "preloadOnStart": true
+    },
+    "minimumDelayBetweenInterstitial": 180
+  },
+  "sendAnalyticsEvents": true,
+  "showFullLoadingLogo": true
+}

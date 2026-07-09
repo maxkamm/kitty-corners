@@ -1,6 +1,5 @@
 <script lang="ts">
   import Icons from './components/Icons.svelte';
-  import AdStubOverlay from './components/AdStubOverlay.svelte';
   import MainScreen from './screens/MainScreen.svelte';
   import GameScreen from './screens/GameScreen.svelte';
   import SettingsOverlay from './screens/SettingsOverlay.svelte';
@@ -36,7 +35,6 @@
     <SettingsOverlay />
   {/if}
 
-  <AdStubOverlay />
 </div>
 
 <style>

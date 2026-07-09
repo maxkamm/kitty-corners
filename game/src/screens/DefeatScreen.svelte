@@ -3,6 +3,7 @@
    *  restart secondary, quit — quiet link. */
   import Hearts from '../components/Hearts.svelte';
   import { streak, skipLevelWithAd, restartAfterDefeat, quitAfterDefeat } from '../lib/game';
+  import { rewardedSupported, adNotice } from '../lib/ads';
 </script>
 
 <section class="lose">
@@ -19,12 +20,20 @@
     </div>
   {/if}
 
-  <button class="cta" on:click={() => skipLevelWithAd()}>
-    Skip this level
-    <small><svg width="13" height="13" style="vertical-align:-2px" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg> watch a short ad · streak stays safe</small>
-  </button>
-  <button class="btn-secondary" on:click={restartAfterDefeat}>Restart level</button>
+  {#if $rewardedSupported}
+    <button class="cta" on:click={() => skipLevelWithAd()}>
+      Skip this level
+      <small><svg width="13" height="13" style="vertical-align:-2px" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg> watch a short ad · streak stays safe</small>
+    </button>
+    <button class="btn-secondary" on:click={restartAfterDefeat}>Restart level</button>
+  {:else}
+    <button class="cta" on:click={restartAfterDefeat}>Restart level</button>
+  {/if}
   <button class="link-quiet" on:click={quitAfterDefeat}>Quit to menu</button>
+
+  {#if $adNotice}
+    <div class="ad-toast" role="status">{$adNotice}</div>
+  {/if}
 </section>
 
 <style>
@@ -96,5 +105,20 @@
     max-width: 300px;
     padding: 12px;
     font-size: 16px;
+  }
+  .ad-toast {
+    position: absolute;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%);
+    max-width: 88%;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 12px;
+    padding: 9px 14px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    box-shadow: var(--shadow);
   }
 </style>
