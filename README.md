@@ -3,6 +3,9 @@
 A cozy logic puzzle: place one cat per row, column and colored region so that no
 two cats touch (including diagonally). Built for the Playgama web platform.
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository location, branch model
+(GitFlow), branch-protection rules, and commit conventions.
+
 ## Structure
 
 - `game/` — the app (Svelte 4 + TypeScript + Vite)
@@ -13,6 +16,7 @@ two cats touch (including diagonally). Built for the Playgama web platform.
   - `tests/` — solver/level validation + `game.ts` unit tests
 - `gdd-kitty-corners.md` — game design document
 - `bug-report.md` — QA report
+- `CONTRIBUTING.md` — repository & contribution guide (GitFlow, commit rules)
 
 ## Develop
 
