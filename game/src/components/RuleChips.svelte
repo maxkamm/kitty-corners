@@ -39,7 +39,7 @@
     <span>Cats cannot touch</span>
   </div>
   <div class="rule-chip controls-chip">
-    <span class="ctrl">Tap — add / remove a cross</span>
+    <span class="ctrl">Tap — add / remove a cross;</span>
     <span class="ctrl">Long-press — place a cat</span>
   </div>
 </div>
