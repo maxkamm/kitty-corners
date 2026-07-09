@@ -31,7 +31,7 @@
     </button>
   </div>
 
-  <RuleChips />
+  <div class="rules-slot"><RuleChips /></div>
 
   <div class="board-wrap" bind:clientHeight={wrapH}>
     <Board
@@ -175,5 +175,42 @@
     align-items: center;
     gap: 3px;
     white-space: nowrap;
+  }
+  /* ---- Desktop / landscape layout (Playgama desktop reqs): board centered,
+     HUD spread across the horizontal space. Also fixes phone-landscape (QA KC-1). ---- */
+  @media (min-aspect-ratio: 1 / 1) {
+    .game {
+      display: grid;
+      grid-template-columns: minmax(150px, 1fr) minmax(280px, 440px) minmax(150px, 1fr);
+      grid-template-rows: auto 1fr;
+      grid-template-areas:
+        "top   top   top"
+        "rules board actions";
+      align-items: center;
+      column-gap: 24px;
+      row-gap: 10px;
+      padding: 18px 28px 22px;
+    }
+    .game-top {
+      grid-area: top;
+    }
+    .rules-slot {
+      grid-area: rules;
+      justify-self: start;
+      width: 100%;
+      max-width: 240px;
+    }
+    .board-wrap {
+      grid-area: board;
+      height: 100%;
+    }
+    .game-bottom {
+      grid-area: actions;
+      flex-direction: column;
+      justify-self: end;
+      align-self: center;
+      gap: 30px;
+      padding-bottom: 0;
+    }
   }
 </style>

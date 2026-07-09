@@ -38,13 +38,30 @@
     </svg>
     <span>Cats cannot touch</span>
   </div>
+  <div class="rule-chip controls-chip">
+    <span class="ctrl">Tap — add / remove a cross;</span>
+    <span class="ctrl">Long-press — place a cat</span>
+  </div>
 </div>
 
 <style>
   .rules-strip {
     display: flex;
+    flex-wrap: wrap;
     gap: 6px;
     justify-content: center;
+  }
+  /* Controls hint: full-width row beneath the three rule chips (portrait). */
+  .controls-chip {
+    flex: 1 0 100%;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .ctrl {
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
   .rule-chip {
     flex: 1;
@@ -66,5 +83,21 @@
     width: 40px;
     height: 40px;
     flex: none;
+  }
+  /* Landscape/desktop: chips stack vertically in the side column. */
+  @media (min-aspect-ratio: 1 / 1) {
+    .rules-strip {
+      flex-direction: column;
+      gap: 10px;
+    }
+    .rule-chip {
+      flex: none;
+    }
+    .controls-chip {
+      flex: none;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
   }
 </style>
