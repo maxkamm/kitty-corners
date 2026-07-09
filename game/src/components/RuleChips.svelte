@@ -67,4 +67,14 @@
     height: 40px;
     flex: none;
   }
+  /* Landscape/desktop: chips stack vertically in the side column. */
+  @media (min-aspect-ratio: 1 / 1) {
+    .rules-strip {
+      flex-direction: column;
+      gap: 10px;
+    }
+    .rule-chip {
+      flex: none;
+    }
+  }
 </style>

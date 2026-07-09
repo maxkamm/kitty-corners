@@ -48,6 +48,12 @@
     overflow: hidden;
     transition: background 0.3s;
   }
+  /* Desktop / landscape: let the game use the horizontal space (Playgama desktop reqs). */
+  @media (min-aspect-ratio: 1 / 1) {
+    .stage {
+      max-width: min(1100px, 100%);
+    }
+  }
   .screen-host {
     position: absolute;
     inset: 0;
