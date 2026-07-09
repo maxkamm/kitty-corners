@@ -1,0 +1,155 @@
+/* Kitty Corners — global tokens & shared styles.
+   Source of truth: kitty-corners-screens-v22.html (GDD §6.4).
+   Do not hardcode colors outside tokens; exceptions: hearts & flame (theme-independent). */
+:root {
+  --bg: #fdf7ee;
+  --surface: #ffffff;
+  --surface-2: #f6eddf;
+  --ink: #443e4c;
+  --ink-soft: #8a8093;
+  --line: #ebdfcc;
+  --edge: #e5d6bd;
+  --accent: #ff9457;
+  --accent-ink: #7a3a12;
+  --accent-soft: #ffe3cf;
+  --heart: #ff6b81;
+  --good: #5fbd8c;
+  --danger: #e4605e;
+  --shadow: 0 6px 20px rgba(90, 70, 50, 0.12);
+  --region-line: rgba(68, 62, 76, 0.45);
+  --dent-deep: #bcb8ce;
+  --dent-face: #dfdcea;
+  --r1: #f4c892;
+  --r2: #a9dbf5;
+  --r3: #93d4b8;
+  --r4: #f5efa3;
+  --r5: #95b9de;
+  --r6: #efac90;
+  --r7: #e7bfd7;
+  --r8: #d5d2cc;
+  /* palette extension for 9×9–10×10 boards (Р-39): every region gets a unique color */
+  --r9: #c7bce8;
+  --r10: #9ad1dc;
+}
+.dark {
+  --bg: #241f2b;
+  --surface: #322b3b;
+  --surface-2: #3c3447;
+  --ink: #f2ecf7;
+  --ink-soft: #a79db3;
+  --line: #453c52;
+  --edge: #1b1622;
+  --accent: #ff9457;
+  --accent-ink: #3a1d08;
+  --accent-soft: #5a4030;
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  --region-line: rgba(242, 236, 247, 0.35);
+  --dent-deep: #191522;
+  --dent-face: #332c3f;
+  --r1: #c99b5f;
+  --r2: #6fa8c9;
+  --r3: #5fa98a;
+  --r4: #c4bc6e;
+  --r5: #6c8fb5;
+  --r6: #c57f60;
+  --r7: #b588a8;
+  --r8: #8e8a93;
+  --r9: #7e71ad;
+  --r10: #5d93a3;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  font-family: 'Nunito', sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  overscroll-behavior: none;
+}
+#app {
+  height: 100%;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- shared components (from mockup) ---- */
+.icon-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  box-shadow: 0 4px 0 var(--edge), var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  flex: none;
+  transition: transform 0.07s;
+}
+button.icon-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--edge);
+}
+.icon-btn svg {
+  width: 22px;
+  height: 22px;
+}
+.cta {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 20px;
+  box-shadow: 0 6px 0 #e0763b, var(--shadow);
+  transition: transform 0.08s;
+}
+.cta:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 #e0763b;
+}
+.btn-secondary {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 18px;
+  border: 2px solid var(--line);
+  box-shadow: 0 4px 0 var(--edge), var(--shadow);
+  transition: transform 0.07s;
+}
+.btn-secondary:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--edge);
+}
+.link-quiet {
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.big-title {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 32px;
+  line-height: 1.05;
+}
+.flame-s {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}

@@ -1,0 +1,21 @@
+# --- dependencies & build output ---
+node_modules/
+dist/
+
+# --- Vite local artifacts ---
+*.timestamp-*.mjs
+vite.config.ts.timestamp-*.mjs
+
+# --- OS / editor junk ---
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+
+# --- heavy prototype snapshots & QA captures ---
+# Early single-file prototypes and QA screenshots are kept locally but
+# not versioned (noise + binary weight). Remove these lines to include them.
+kitty-corners-build-*.html
+kitty-corners-screens-*.html
+qa-screenshots/
