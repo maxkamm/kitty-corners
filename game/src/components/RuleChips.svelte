@@ -65,6 +65,7 @@
   }
   .rule-chip {
     flex: 1;
+    min-width: 0;
     background: var(--surface);
     border-radius: 12px;
     padding: 6px 7px;
@@ -83,6 +84,24 @@
     width: 40px;
     height: 40px;
     flex: none;
+  }
+  /* Portrait: the controls chip always sits on its own row beneath the three
+     rule chips. When vertical space is tight, shrink the chips (font, padding,
+     mini-grid) with the viewport height so all four fit without pushing the
+     board off-screen. */
+  @media (orientation: portrait) {
+    .rule-chip {
+      padding: clamp(4px, 0.9vh, 6px) 7px;
+      gap: clamp(4px, 0.9vh, 6px);
+      font-size: clamp(8px, 1.5vh, 10px);
+    }
+    .rule-chip svg {
+      width: clamp(26px, 5.2vh, 40px);
+      height: clamp(26px, 5.2vh, 40px);
+    }
+    .controls-chip {
+      gap: clamp(8px, 2vw, 18px);
+    }
   }
   /* Landscape/desktop: chips stack vertically in the side column. */
   @media (min-aspect-ratio: 1 / 1) {
