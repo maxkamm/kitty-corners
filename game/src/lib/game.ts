@@ -5,7 +5,8 @@
 import { writable, derived, get } from 'svelte/store';
 import type { LevelDef, CellState, Screen, SolverStep } from './types';
 import { storage } from './storage';
-import { ads, fakeAdVisible } from './ads';
+import { ads, adActive } from './ads';
+import { platformPaused, sendPlatformMessage } from './platform';
 import { analytics } from './analytics';
 import { sfx } from './audio';
 import { vibrate } from './haptics';
@@ -77,7 +78,8 @@ function resumeTimer(): void {
     runningSince === null &&
     get(screen) === 'game' &&
     !get(settingsOpen) &&
-    !get(fakeAdVisible) &&
+    !get(adActive) &&
+    !get(platformPaused) &&
     !inputLocked
   ) {
     runningSince = Date.now();
@@ -92,7 +94,11 @@ function activeSeconds(): number {
 }
 
 settingsOpen.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
-fakeAdVisible.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
+settingsOpen.subscribe((v) => {
+  if (get(screen) === 'game') sendPlatformMessage(v ? 'level_paused' : 'level_resumed');
+});
+adActive.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
+platformPaused.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
 screen.subscribe((v) => (v === 'game' ? resumeTimer() : pauseTimer()));
 
 let solverLog: SolverStep[] | null = null;
@@ -258,6 +264,7 @@ export function loadLevel(): void {
 export function startGame(): void {
   screen.set('game');
   loadLevel(); // after screen switch, so the active-play timer resumes correctly (KC-5)
+  sendPlatformMessage('level_started');
 }
 
 // ---------- interactions ----------
@@ -297,6 +304,7 @@ export function commitCat(i: number): void {
     if (get(hearts) <= 0) {
       sfx.lose();
       analytics.track('defeat', { level: get(levelNumber) });
+      sendPlatformMessage('level_failed');
       if (reducedMotion()) {
         screen.set('defeat');
       } else {
@@ -342,6 +350,7 @@ async function onWin(): Promise<void> {
   sfx.win();
   vibrate([20, 30, 20, 30, 40]);
   analytics.track('level_win', { level: get(winLevel), time: get(winTime) });
+  sendPlatformMessage('level_completed');
   if (reducedMotion()) {
     screen.set('victory');
     return;
@@ -391,6 +400,7 @@ export function quitAfterDefeat(): void {
 export function restartFromSettings(): void {
   settingsOpen.set(false);
   loadLevel();
+  sendPlatformMessage('level_started'); // restart begins a fresh playthrough of the level
 }
 
 export function quitToMenu(): void {

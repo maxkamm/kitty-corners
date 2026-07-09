@@ -19,6 +19,7 @@
     useAutocat,
     useHint
   } from '../lib/game';
+  import { rewardedSupported, adNotice } from '../lib/ads';
 </script>
 
 <section class="game">
@@ -45,21 +46,27 @@
     />
   </div>
 
-  <div class="game-bottom">
-    <button
-      class="round-btn"
-      aria-label="Place one cat for me"
-      disabled={$autocatUsed}
-      on:click={() => useAutocat()}
-    >
-      <svg><use href="#ic-cathead" /></svg>
-      <span class="ad-tag"><svg width="10" height="10" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg> ad</span>
-    </button>
-    <button class="round-btn" aria-label="Hint: next logical step" on:click={() => useHint()}>
-      <svg><use href="#ic-bulb" /></svg>
-      <span class="ad-tag"><svg width="10" height="10" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg> ad</span>
-    </button>
-  </div>
+  {#if $rewardedSupported}
+    <div class="game-bottom">
+      <button
+        class="round-btn"
+        aria-label="Place one cat for me"
+        disabled={$autocatUsed}
+        on:click={() => useAutocat()}
+      >
+        <svg><use href="#ic-cathead" /></svg>
+        <span class="ad-tag"><svg width="10" height="10" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg> ad</span>
+      </button>
+      <button class="round-btn" aria-label="Hint: next logical step" on:click={() => useHint()}>
+        <svg><use href="#ic-bulb" /></svg>
+        <span class="ad-tag"><svg width="10" height="10" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg> ad</span>
+      </button>
+    </div>
+  {/if}
+
+  {#if $adNotice}
+    <div class="ad-toast" role="status">{$adNotice}</div>
+  {/if}
 </section>
 
 <style>
@@ -119,6 +126,38 @@
   .round-btn > svg {
     width: 30px;
     height: 30px;
+  }
+  .ad-toast {
+    position: absolute;
+    left: 50%;
+    bottom: 92px;
+    transform: translateX(-50%);
+    max-width: 88%;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 12px;
+    padding: 9px 14px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    animation: ad-toast-in 0.2s ease both;
+  }
+  @keyframes ad-toast-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 6px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ad-toast {
+      animation: none;
+    }
   }
   .ad-tag {
     position: absolute;
