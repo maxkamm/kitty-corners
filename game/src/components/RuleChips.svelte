@@ -38,13 +38,47 @@
     </svg>
     <span>Cats cannot touch</span>
   </div>
+  <div class="rule-chip controls-chip">
+    <span class="ctrl">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="1" y="1" width="22" height="22" rx="5" fill="var(--line)" />
+        <use href="#soft-x" x="5" y="5" width="14" height="14" />
+      </svg>
+      Tap — add / remove a cross
+    </span>
+    <span class="ctrl">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="1" y="1" width="22" height="22" rx="5" fill="var(--r3)" />
+        <use href="#cat-round" x="2" y="2" width="20" height="20" />
+      </svg>
+      Long-press — place a cat
+    </span>
+  </div>
 </div>
 
 <style>
   .rules-strip {
     display: flex;
+    flex-wrap: wrap;
     gap: 6px;
     justify-content: center;
+  }
+  /* Controls hint: full-width row beneath the three rule chips (portrait). */
+  .controls-chip {
+    flex: 1 0 100%;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .ctrl {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .controls-chip svg {
+    width: 24px;
+    height: 24px;
+    flex: none;
   }
   .rule-chip {
     flex: 1;
@@ -75,6 +109,12 @@
     }
     .rule-chip {
       flex: none;
+    }
+    .controls-chip {
+      flex: none;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
     }
   }
 </style>
