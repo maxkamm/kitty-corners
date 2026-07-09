@@ -3,6 +3,9 @@
 A cozy logic puzzle: place one cat per row, column and colored region so that no
 two cats touch (including diagonally). Built for the Playgama web platform.
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository location, branch model
+(GitFlow), branch-protection rules, and commit conventions.
+
 ## Structure
 
 - `game/` — the app (Svelte 4 + TypeScript + Vite)
@@ -13,6 +16,7 @@ two cats touch (including diagonally). Built for the Playgama web platform.
   - `tests/` — solver/level validation + `game.ts` unit tests
 - `gdd-kitty-corners.md` — game design document
 - `bug-report.md` — QA report
+- `CONTRIBUTING.md` — repository & contribution guide (GitFlow, commit rules)
 
 ## Develop
 
@@ -29,4 +33,12 @@ npm run build      # production bundle → game/dist
 
 - Fonts (Baloo 2, Nunito) are self-hosted via `@fontsource` and bundled — no CDN.
 - `game/dist/` and `node_modules/` are build artifacts and are git-ignored.
-- Ads and storage are dev stubs; the Playgama Bridge SDK adapters are wired in at release.
+- Playgama Bridge SDK is fully wired: ads (`ads.ts`), storage (`storage.ts`), and platform
+  lifecycle (`platform.ts`: `game_ready`, language, universal PAUSE/AUDIO mute+pause,
+  `level_*` messages). Init/boot in `src/main.ts`; SDK loads from CDN in `index.html` and
+  uses a mock platform in local dev.
+- `public/playgama-bridge-config.json` was generated with the official
+  [config editor](https://playgama.github.io/bridge-config-editor/) for a Playgama launch
+  (interstitial + rewarded preload, 180s min interstitial interval, built-in error popup).
+  To publish on other platforms (GameDistribution, Y8, Telegram, …), re-open the editor,
+  add those platforms with their real IDs, and replace this file.

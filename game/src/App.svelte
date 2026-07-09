@@ -1,6 +1,5 @@
 <script lang="ts">
   import Icons from './components/Icons.svelte';
-  import AdStubOverlay from './components/AdStubOverlay.svelte';
   import MainScreen from './screens/MainScreen.svelte';
   import GameScreen from './screens/GameScreen.svelte';
   import SettingsOverlay from './screens/SettingsOverlay.svelte';
@@ -36,7 +35,6 @@
     <SettingsOverlay />
   {/if}
 
-  <AdStubOverlay />
 </div>
 
 <style>
@@ -49,6 +47,12 @@
     background: var(--bg);
     overflow: hidden;
     transition: background 0.3s;
+  }
+  /* Desktop / landscape: let the game use the horizontal space (Playgama desktop reqs). */
+  @media (min-aspect-ratio: 1 / 1) {
+    .stage {
+      max-width: min(1100px, 100%);
+    }
   }
   .screen-host {
     position: absolute;

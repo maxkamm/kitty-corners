@@ -5,7 +5,8 @@
 import { writable, derived, get } from 'svelte/store';
 import type { LevelDef, CellState, Screen, SolverStep } from './types';
 import { storage } from './storage';
-import { ads, fakeAdVisible } from './ads';
+import { ads, adActive } from './ads';
+import { platformPaused, sendPlatformMessage } from './platform';
 import { analytics } from './analytics';
 import { sfx } from './audio';
 import { vibrate } from './haptics';
@@ -77,7 +78,8 @@ function resumeTimer(): void {
     runningSince === null &&
     get(screen) === 'game' &&
     !get(settingsOpen) &&
-    !get(fakeAdVisible) &&
+    !get(adActive) &&
+    !get(platformPaused) &&
     !inputLocked
   ) {
     runningSince = Date.now();
@@ -92,10 +94,16 @@ function activeSeconds(): number {
 }
 
 settingsOpen.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
-fakeAdVisible.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
+settingsOpen.subscribe((v) => {
+  if (get(screen) === 'game') sendPlatformMessage(v ? 'level_paused' : 'level_resumed');
+});
+adActive.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
+platformPaused.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
 screen.subscribe((v) => (v === 'game' ? resumeTimer() : pauseTimer()));
 
 let solverLog: SolverStep[] | null = null;
+/** Indices of the current level's unique-solution cats (commit target check). */
+let solutionSet = new Set<number>();
 let errorTimer: ReturnType<typeof setTimeout> | undefined;
 let hintTimer: ReturnType<typeof setTimeout> | undefined;
 let outcomeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -232,6 +240,7 @@ export function loadLevel(): void {
   hintCells.set([]);
   errorCells.set([]);
   solverLog = solveWithLog(level);
+  solutionSet = new Set(level.solution.map((s) => idx(level, s.row, s.col)));
   activeMs = 0; // hidden timer starts after the intro (KC-5)
   runningSince = null;
   analytics.track('level_start', { level: get(levelNumber) });
@@ -255,6 +264,7 @@ export function loadLevel(): void {
 export function startGame(): void {
   screen.set('game');
   loadLevel(); // after screen switch, so the active-play timer resumes correctly (KC-5)
+  sendPlatformMessage('level_started');
 }
 
 // ---------- interactions ----------
@@ -277,12 +287,14 @@ export function commitCat(i: number): void {
   if (inputLocked) return;
   const level = get(currentLevel);
   const board = get(cells);
-  const r = Math.floor(i / level.size);
-  const c = i % level.size;
 
   if (board[i] === 'cat') return;
 
-  if (violates(level, board, r, c)) {
+  // A commit is correct only if the cell belongs to the level's unique solution.
+  // Every level has a single solution reachable by pure logic (solver, no guessing),
+  // so each cat has exactly one legal cell; any other commit is a mistake and costs a
+  // heart, even when it does not (yet) conflict with an already-placed cat.
+  if (!solutionSet.has(i)) {
     sfx.error();
     vibrate([30, 40, 30]);
     errorCells.set([i]);
@@ -292,6 +304,7 @@ export function commitCat(i: number): void {
     if (get(hearts) <= 0) {
       sfx.lose();
       analytics.track('defeat', { level: get(levelNumber) });
+      sendPlatformMessage('level_failed');
       if (reducedMotion()) {
         screen.set('defeat');
       } else {
@@ -337,6 +350,7 @@ async function onWin(): Promise<void> {
   sfx.win();
   vibrate([20, 30, 20, 30, 40]);
   analytics.track('level_win', { level: get(winLevel), time: get(winTime) });
+  sendPlatformMessage('level_completed');
   if (reducedMotion()) {
     screen.set('victory');
     return;
@@ -386,6 +400,7 @@ export function quitAfterDefeat(): void {
 export function restartFromSettings(): void {
   settingsOpen.set(false);
   loadLevel();
+  sendPlatformMessage('level_started'); // restart begins a fresh playthrough of the level
 }
 
 export function quitToMenu(): void {

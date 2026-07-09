@@ -149,6 +149,34 @@ const TOTAL = rawLevels.length;
 }
 
 // ============================================================
+// 4b) commitCat: a locally-legal but non-solution commit also costs a heart
+//     (every cat has exactly one legal cell = its solution cell).
+// ============================================================
+{
+  levelNumber.set(1);
+  startGame();
+  const level = get(currentLevel);
+  const size = level.size;
+  const solutionIdx = new Set(level.solution.map((s) => idx(level, s.row, s.col)));
+  const board = get(cells);
+  // find a non-solution cell that does NOT conflict with any placed cat
+  // (under the old rules this commit was allowed with no penalty — the KC-4 dead-end trap)
+  let tricky = -1;
+  for (let i = 0; i < board.length; i++) {
+    if (solutionIdx.has(i) || board[i] === 'cat') continue;
+    const r = Math.floor(i / size);
+    const c = i % size;
+    if (!violates(level, board, r, c)) { tricky = i; break; }
+  }
+  check('commit non-solution: found a legal-but-wrong cell', tricky >= 0);
+  const before = get(hearts);
+  commitCat(tricky);
+  eq('commit non-solution: heart lost', get(hearts), before - 1);
+  check('commit non-solution: no cat placed', get(cells)[tricky] !== 'cat');
+  check('commit non-solution: error flash set', get(errorCells).includes(tricky));
+}
+
+// ============================================================
 // 5) Win flow (KC-3 progress-at-win + activeLevel snapshot regression fix)
 // ============================================================
 {

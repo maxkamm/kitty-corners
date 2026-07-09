@@ -118,6 +118,13 @@
       cancelPress();
     }
   }
+
+  /** Desktop convenience: right-click commits a cat (long-press with the mouse still works). */
+  function onContext(e: MouseEvent, i: number): void {
+    e.preventDefault();
+    cancelPress();
+    if (cells[i] !== 'cat') commitCat(i);
+  }
 </script>
 
 <div
@@ -143,6 +150,7 @@
         on:pointermove={onMove}
         on:pointercancel={cancelPress}
         on:pointerleave={cancelPress}
+        on:contextmenu={(e) => onContext(e, i)}
       >
         {#if cells[i] === 'cat'}
           <svg
