@@ -52,7 +52,7 @@
     justify-content: center;
   }
   /* Controls hint: full-width row beneath the three rule chips (portrait). */
-  .controls-chip {
+  .rule-chip.controls-chip {
     flex: 1 0 100%;
     justify-content: center;
     gap: 18px;
@@ -99,7 +99,7 @@
       width: clamp(26px, 5.2vh, 40px);
       height: clamp(26px, 5.2vh, 40px);
     }
-    .controls-chip {
+    .rule-chip.controls-chip {
       gap: clamp(8px, 2vw, 18px);
     }
   }
@@ -112,7 +112,7 @@
     .rule-chip {
       flex: none;
     }
-    .controls-chip {
+    .rule-chip.controls-chip {
       flex: none;
       flex-direction: column;
       align-items: flex-start;
