@@ -10,5 +10,11 @@
     "minimumDelayBetweenInterstitial": 180
   },
   "sendAnalyticsEvents": true,
-  "showFullLoadingLogo": true
+  "showFullLoadingLogo": true,
+  "device": {
+    "useBuiltInOrientationPopup": true,
+    "supportedOrientations": [
+      "portrait"
+    ]
+  }
 }
