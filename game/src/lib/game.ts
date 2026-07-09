@@ -96,6 +96,8 @@ fakeAdVisible.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
 screen.subscribe((v) => (v === 'game' ? resumeTimer() : pauseTimer()));
 
 let solverLog: SolverStep[] | null = null;
+/** Indices of the current level's unique-solution cats (commit target check). */
+let solutionSet = new Set<number>();
 let errorTimer: ReturnType<typeof setTimeout> | undefined;
 let hintTimer: ReturnType<typeof setTimeout> | undefined;
 let outcomeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -232,6 +234,7 @@ export function loadLevel(): void {
   hintCells.set([]);
   errorCells.set([]);
   solverLog = solveWithLog(level);
+  solutionSet = new Set(level.solution.map((s) => idx(level, s.row, s.col)));
   activeMs = 0; // hidden timer starts after the intro (KC-5)
   runningSince = null;
   analytics.track('level_start', { level: get(levelNumber) });
@@ -277,12 +280,14 @@ export function commitCat(i: number): void {
   if (inputLocked) return;
   const level = get(currentLevel);
   const board = get(cells);
-  const r = Math.floor(i / level.size);
-  const c = i % level.size;
 
   if (board[i] === 'cat') return;
 
-  if (violates(level, board, r, c)) {
+  // A commit is correct only if the cell belongs to the level's unique solution.
+  // Every level has a single solution reachable by pure logic (solver, no guessing),
+  // so each cat has exactly one legal cell; any other commit is a mistake and costs a
+  // heart, even when it does not (yet) conflict with an already-placed cat.
+  if (!solutionSet.has(i)) {
     sfx.error();
     vibrate([30, 40, 30]);
     errorCells.set([i]);
