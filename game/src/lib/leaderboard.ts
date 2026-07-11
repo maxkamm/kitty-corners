@@ -92,6 +92,45 @@ export async function showNativePopup(): Promise<void> {
   }
 }
 
+// ---------- persistent desktop panel (Р-44) ----------
+/**
+ * Entries backing the always-on desktop panel. Kept at module level so the
+ * board survives screen switches (game → victory) mid-animation.
+ */
+export const panelEntries = writable<LeaderboardEntry[] | null>(null);
+/** score gain currently "flying" into the board (drives the panel chip) */
+export const pendingGain = writable(0);
+
+/** duration of the +points flight before the standings update */
+export const FLY_MS = 800;
+let applyTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** (Re)load the panel entries. No-op unless the flow is 'in_game' (or mock). */
+export async function refreshEntries(playerTotal: number): Promise<void> {
+  const entries = await getEntries(playerTotal);
+  if (entries) panelEntries.set(entries);
+}
+
+/**
+ * Win choreography (Р-44): show the flying "+gain" chip, then update the
+ * standings (self row climbs — the panel animates the reorder via FLIP).
+ * Runs at module level so it completes even if the game screen unmounts
+ * during the celebration.
+ */
+export function queueGain(gain: number, newTotal: number, reducedMotion = false): void {
+  // only flows that render our own board animate
+  if (!mockMode && getBridge()?.leaderboards?.type !== 'in_game') return;
+  clearTimeout(applyTimer);
+  if (reducedMotion) {
+    void refreshEntries(newTotal);
+    return;
+  }
+  pendingGain.set(gain);
+  applyTimer = setTimeout(() => {
+    void refreshEntries(newTotal).then(() => pendingGain.set(0));
+  }, FLY_MS);
+}
+
 /** Dev-mock board: fixed cast around the player's real total. */
 function mockEntries(playerTotal: number): LeaderboardEntry[] {
   const cast = [

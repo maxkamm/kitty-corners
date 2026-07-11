@@ -1,6 +1,7 @@
 <script lang="ts">
   /** Victory (GDD §5.5, Р-30): Win streak feature card + Best streak + time pill + confetti. */
   import LeaderboardOverlay from '../components/LeaderboardOverlay.svelte';
+  import LeaderboardPanel from '../components/LeaderboardPanel.svelte';
   import { winLevel, winStreak, bestStreak, winTime, winScore, totalScore, nextLevel } from '../lib/game';
   import { leaderboardType, showNativePopup } from '../lib/leaderboard';
 
@@ -77,6 +78,12 @@
 
   {#if showBoard}
     <LeaderboardOverlay on:close={() => (showBoard = false)} />
+  {/if}
+
+  <!-- Desktop (Р-44): the persistent panel stays on the right so any standings
+       movement that started during the celebration remains visible here -->
+  {#if $leaderboardType === 'in_game'}
+    <div class="lb-side"><LeaderboardPanel /></div>
   {/if}
 </section>
 
@@ -330,6 +337,24 @@
     align-items: center;
     gap: 6px;
     z-index: 1;
+  }
+  .lb-side {
+    display: none;
+  }
+  @media (min-aspect-ratio: 1 / 1) {
+    .lb-side {
+      display: block;
+      position: absolute;
+      right: 28px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 240px;
+      z-index: 1;
+    }
+    /* the persistent panel replaces the overlay entry point on desktop */
+    .lb-link {
+      display: none;
+    }
   }
   .lb-cup {
     width: 16px;
