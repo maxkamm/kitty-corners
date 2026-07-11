@@ -79,6 +79,12 @@
     <symbol id="ic-gear" viewBox="0 0 24 24">
       <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Zm8-3.5.02-1.53-2.1-.63a6 6 0 0 0-.63-1.5l1.05-1.94-1.09-1.08-1.93 1.05a6 6 0 0 0-1.5-.63L13.53 4h-1.53l-.63 2.1a6 6 0 0 0-1.5.63L7.93 5.68 6.84 6.76 7.9 8.7a6 6 0 0 0-.63 1.5L5 10.82v1.53l2.1.63c.14.53.35 1.03.63 1.5l-1.05 1.94 1.08 1.08 1.94-1.05c.47.28.97.49 1.5.63l.63 2.1h1.53l.63-2.1a6 6 0 0 0 1.5-.63l1.94 1.05 1.08-1.08-1.05-1.94c.28-.47.49-.97.63-1.5l2.1-.63Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
     </symbol>
+    <symbol id="ic-trophy" viewBox="0 0 24 24">
+      <path d="M8 4h8v3.5a4 4 0 0 1-8 0V4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+      <path d="M8 5.2H5.2a.7.7 0 0 0-.7.8c.1 2 1.3 3.4 3.6 3.8M16 5.2h2.8a.7.7 0 0 1 .7.8c-.1 2-1.3 3.4-3.6 3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+      <path d="M12 11.5v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      <path d="M8.5 19c.3-2 1.7-3 3.5-3s3.2 1 3.5 3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+    </symbol>
     <symbol id="ic-q" viewBox="0 0 24 24">
       <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8" />
       <path d="M9.6 9.2c.3-1.4 1.5-2.2 2.9-2 1.3.1 2.3 1.1 2.3 2.3 0 1.6-2.3 2-2.3 3.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />

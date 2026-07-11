@@ -12,6 +12,7 @@ import './styles/global.css';
 import { initBridge } from './lib/bridge';
 import { initPlatform } from './lib/platform';
 import { initAds } from './lib/ads';
+import { initLeaderboard } from './lib/leaderboard';
 import { storage } from './lib/storage';
 
 /**
@@ -23,6 +24,7 @@ import { storage } from './lib/storage';
 async function boot() {
   await initBridge();
   initAds(); // read ad capabilities now that Bridge is initialized
+  initLeaderboard(); // read leaderboard flow (Р-43)
   await storage.hydrate();
   const { default: App } = await import('./App.svelte');
   const app = new App({ target: document.getElementById('app')! });

@@ -11,6 +11,8 @@ import { analytics } from './analytics';
 import { sfx } from './audio';
 import { vibrate } from './haptics';
 import { solveWithLog } from './solver';
+import { computeScore } from './score';
+import { submitScore } from './leaderboard';
 import levelsData from '../data/levels.json';
 
 /** On-disk format stores each region row as a compact string ("aabbbc"). */
@@ -31,11 +33,14 @@ export const streak = writable<number>(storage.get('streak', 0));
 export const bestStreak = writable<number>(storage.get('bestStreak', 0));
 /** First-run tutorial completed (or skipped) — never show it automatically again. */
 export const tutorialDone = writable<boolean>(storage.get('tutorialDone', false));
+/** Cumulative score across all won levels (Р-42) — the future leaderboard value. */
+export const totalScore = writable<number>(storage.get('totalScore', 0));
 
 levelNumber.subscribe((v) => storage.set('level', v));
 streak.subscribe((v) => storage.set('streak', v));
 bestStreak.subscribe((v) => storage.set('bestStreak', v));
 tutorialDone.subscribe((v) => storage.set('tutorialDone', v));
+totalScore.subscribe((v) => storage.set('totalScore', v));
 
 // ---------- session ----------
 export const screen = writable<Screen>('main');
@@ -61,6 +66,16 @@ export const introOrigin = writable(-1);
 export const winStreak = writable(0);
 /** level number captured for the victory title (KC-3: levelNumber increments at win) */
 export const winLevel = writable(0);
+/** score earned for the level just won (victory card, Р-42) */
+export const winScore = writable(0);
+
+// ---------- per-run scoring counters (Р-42) ----------
+/** wrong commits this run */
+let runErrors = 0;
+/** unique cells the player marked with ✕ this run (auto-X from the given not counted) */
+let runXCells = new Set<number>();
+/** rewarded hints used this run */
+let runHints = 0;
 
 /**
  * Hidden active-play timer (KC-5): excludes the intro, settings pause,
@@ -242,6 +257,9 @@ export function loadLevel(): void {
   autocatUsed.set(false);
   hintCells.set([]);
   errorCells.set([]);
+  runErrors = 0;
+  runXCells = new Set();
+  runHints = 0;
   solverLog = solveWithLog(level);
   solutionSet = new Set(level.solution.map((s) => idx(level, s.row, s.col)));
   activeMs = 0; // hidden timer starts after the intro (KC-5)
@@ -299,6 +317,7 @@ export function tapCell(i: number): void {
     const next = b.slice();
     if (next[i] === 'cat') next[i] = 'empty';
     else next[i] = next[i] === 'x' ? 'empty' : 'x';
+    if (next[i] === 'x') runXCells.add(i); // score: eye bonus counts unique marked cells (Р-42)
     return next;
   });
   sfx.tap();
@@ -318,6 +337,7 @@ export function commitCat(i: number): void {
   // so each cat has exactly one legal cell; any other commit is a mistake and costs a
   // heart, even when it does not (yet) conflict with an already-placed cat.
   if (!solutionSet.has(i)) {
+    runErrors++;
     sfx.error();
     vibrate([30, 40, 30]);
     errorCells.set([i]);
@@ -363,6 +383,21 @@ function reducedMotion(): boolean {
 async function onWin(): Promise<void> {
   winTime.set(activeSeconds());
   pauseTimer();
+  // score (Р-42): every win is the first completion of this level number
+  // (levelNumber only advances on win; skip advances without scoring)
+  const level = get(activeLevel);
+  const score = computeScore({
+    steps: level.meta?.steps ?? level.size * 2,
+    size: level.size,
+    timeSec: get(winTime),
+    errors: runErrors,
+    xCells: runXCells.size,
+    hints: runHints,
+    autocat: get(autocatUsed)
+  });
+  winScore.set(score);
+  totalScore.update((t) => t + score);
+  void submitScore(get(totalScore)); // leaderboard (Р-43); failures never break the win flow
   streak.update((s) => s + 1);
   const s = get(streak);
   winStreak.set(s);
@@ -372,7 +407,13 @@ async function onWin(): Promise<void> {
   levelNumber.update((n) => n + 1);
   sfx.win();
   vibrate([20, 30, 20, 30, 40]);
-  analytics.track('level_win', { level: get(winLevel), time: get(winTime) });
+  analytics.track('level_win', {
+    level: get(winLevel),
+    time: get(winTime),
+    score,
+    errors: runErrors,
+    xCells: runXCells.size
+  });
   sendPlatformMessage('level_completed');
   if (reducedMotion()) {
     screen.set('victory');
@@ -497,6 +538,7 @@ export async function useHint(): Promise<void> {
     const t = level.solution.find((s) => board[idx(level, s.row, s.col)] !== 'cat');
     if (t) targets = [idx(level, t.row, t.col)];
   }
+  runHints++;
   analytics.track('hint', { level: get(levelNumber) });
   hintCells.set(targets);
   clearTimeout(hintTimer);
