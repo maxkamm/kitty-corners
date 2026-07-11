@@ -29,10 +29,13 @@ export const HEARTS_MAX = 3;
 export const levelNumber = writable<number>(storage.get('level', 1));
 export const streak = writable<number>(storage.get('streak', 0));
 export const bestStreak = writable<number>(storage.get('bestStreak', 0));
+/** First-run tutorial completed (or skipped) — never show it automatically again. */
+export const tutorialDone = writable<boolean>(storage.get('tutorialDone', false));
 
 levelNumber.subscribe((v) => storage.set('level', v));
 streak.subscribe((v) => storage.set('streak', v));
 bestStreak.subscribe((v) => storage.set('bestStreak', v));
+tutorialDone.subscribe((v) => storage.set('tutorialDone', v));
 
 // ---------- session ----------
 export const screen = writable<Screen>('main');
@@ -262,9 +265,29 @@ export function loadLevel(): void {
 }
 
 export function startGame(): void {
+  // First run: the guided tutorial replaces the first level (GDD §2.1).
+  if (!get(tutorialDone)) {
+    analytics.track('tutorial_start');
+    screen.set('tutorial');
+    return;
+  }
   screen.set('game');
   loadLevel(); // after screen switch, so the active-play timer resumes correctly (KC-5)
   sendPlatformMessage('level_started');
+}
+
+/** Tutorial finished — into the real game. */
+export function finishTutorial(): void {
+  analytics.track('tutorial_complete');
+  tutorialDone.set(true);
+  startGame();
+}
+
+/** Tutorial skipped from its header — straight into the real game. */
+export function skipTutorial(): void {
+  analytics.track('tutorial_skip');
+  tutorialDone.set(true);
+  startGame();
 }
 
 // ---------- interactions ----------

@@ -13,6 +13,11 @@
   export let cells: CellState[];
   export let errorCells: number[] = [];
   export let hintCells: number[] = [];
+  /** cells glowing persistently while the tutorial waits for them */
+  export let guideCells: number[] = [];
+  /** input handlers — default to the real game; the tutorial passes its own */
+  export let onTap: (i: number) => void = tapCell;
+  export let onCommit: (i: number) => void = commitCat;
   /** joy wave across cats before the Victory screen */
   export let celebrate = false;
   /** pre-placed cats (non-removable, Р-36) */
@@ -101,7 +106,7 @@
       pressTimer = setTimeout(() => {
         committed = true;
         charging = -1;
-        commitCat(i);
+        onCommit(i);
       }, LONG_PRESS_MS);
     }
   }
@@ -109,7 +114,7 @@
   function onUp(i: number): void {
     const wasPressed = pressedIndex === i && !committed;
     cancelPress();
-    if (wasPressed) tapCell(i);
+    if (wasPressed) onTap(i);
   }
 
   function onMove(e: PointerEvent): void {
@@ -123,7 +128,7 @@
   function onContext(e: MouseEvent, i: number): void {
     e.preventDefault();
     cancelPress();
-    if (cells[i] !== 'cat') commitCat(i);
+    if (cells[i] !== 'cat') onCommit(i);
   }
 </script>
 
@@ -142,6 +147,7 @@
         class="cell"
         class:error={errorCells.includes(i)}
         class:hint={hintCells.includes(i)}
+        class:guide={guideCells.includes(i)}
         role="gridcell"
         tabindex="-1"
         style="background:{cellBg(r, c)};{regionShadow(r, c) ? `box-shadow:${regionShadow(r, c)}` : ''}"
@@ -363,6 +369,16 @@
   @keyframes hint-pulse {
     0%, 100% { opacity: 0.35; transform: scale(0.96); }
     50% { opacity: 1; transform: scale(1); }
+  }
+  /* tutorial: persistent gentle glow until the player acts on the cell */
+  .cell.guide::after {
+    content: '';
+    position: absolute;
+    inset: 6%;
+    border: 3px solid var(--accent);
+    border-radius: 20%;
+    animation: hint-pulse 1.2s ease-in-out infinite;
+    pointer-events: none;
   }
   @media (prefers-reduced-motion: reduce) {
     .cell .cat,

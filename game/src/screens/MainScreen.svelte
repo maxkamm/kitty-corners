@@ -1,6 +1,7 @@
 <script lang="ts">
   import PawBg from '../components/PawBg.svelte';
   import LogoMark from '../components/LogoMark.svelte';
+  import HowToPlay from '../components/HowToPlay.svelte';
   import { levelNumber, streak, startGame, settingsOpen } from '../lib/game';
 
   let showHow = false;
@@ -35,22 +36,7 @@
   </div>
 
   {#if showHow}
-    <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-    <div
-      class="overlay"
-      role="dialog"
-      aria-label="How to play"
-      on:click={(e) => {
-        if (e.target === e.currentTarget) showHow = false;
-      }}
-    >
-      <div class="sheet">
-        <h2>How to play</h2>
-        <p>Place one cat in every color region — exactly one per row and column, and cats can never touch, not even diagonally.</p>
-        <p>Tap a cell to mark it with an ✕. Press and hold to place a cat.</p>
-        <button class="cta" on:click={() => (showHow = false)}>Got it</button>
-      </div>
-    </div>
+    <HowToPlay on:close={() => (showHow = false)} />
   {/if}
 </section>
 
@@ -128,41 +114,5 @@
     font-weight: 700;
     font-size: 13px;
     opacity: 0.85;
-  }
-  .overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(40, 30, 50, 0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    z-index: 5;
-  }
-  .sheet {
-    width: 100%;
-    max-width: 330px;
-    background: var(--bg);
-    border-radius: 24px;
-    padding: 22px 20px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .sheet h2 {
-    font-family: 'Baloo 2', sans-serif;
-    font-weight: 700;
-    font-size: 22px;
-    text-align: center;
-  }
-  .sheet p {
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 1.45;
-  }
-  .sheet .cta {
-    padding: 13px;
-    font-size: 18px;
   }
 </style>

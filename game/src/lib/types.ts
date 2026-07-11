@@ -19,7 +19,7 @@ export interface LevelDef {
 
 export type CellState = 'empty' | 'x' | 'cat';
 
-export type Screen = 'main' | 'game' | 'defeat' | 'victory';
+export type Screen = 'main' | 'tutorial' | 'game' | 'defeat' | 'victory';
 
 export interface SolverStep {
   type: 'place' | 'eliminate';
