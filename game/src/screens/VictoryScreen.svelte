@@ -1,8 +1,17 @@
 <script lang="ts">
   /** Victory (GDD §5.5, Р-30): Win streak feature card + Best streak + time pill + confetti. */
+  import LeaderboardOverlay from '../components/LeaderboardOverlay.svelte';
   import { winLevel, winStreak, bestStreak, winTime, winScore, totalScore, nextLevel } from '../lib/game';
+  import { leaderboardType, showNativePopup } from '../lib/leaderboard';
 
   const fmtNum = (n: number): string => n.toLocaleString('en-US');
+
+  let showBoard = false;
+
+  function onTrophy(): void {
+    if ($leaderboardType === 'native_popup') void showNativePopup();
+    else showBoard = true;
+  }
 
   const CONF_COLORS = ['#F4C892', '#A9DBF5', '#93D4B8', '#E7BFD7', '#FF9457'];
   const confetti = Array.from({ length: 26 }, (_, i) => ({
@@ -60,6 +69,15 @@
   </div>
 
   <button class="cta next-btn" on:click={() => nextLevel()}>Next level</button>
+  {#if $leaderboardType === 'in_game' || $leaderboardType === 'native_popup'}
+    <button class="link-quiet lb-link" on:click={onTrophy}>
+      <svg class="lb-cup"><use href="#ic-trophy" /></svg> Leaderboard
+    </button>
+  {/if}
+
+  {#if showBoard}
+    <LeaderboardOverlay on:close={() => (showBoard = false)} />
+  {/if}
 </section>
 
 <style>
@@ -306,6 +324,17 @@
     font-size: 20px;
     margin-top: 8px;
     z-index: 1;
+  }
+  .lb-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 1;
+  }
+  .lb-cup {
+    width: 16px;
+    height: 16px;
+    color: var(--accent);
   }
   .confetti {
     position: absolute;

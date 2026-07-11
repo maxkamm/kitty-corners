@@ -12,6 +12,7 @@ import { sfx } from './audio';
 import { vibrate } from './haptics';
 import { solveWithLog } from './solver';
 import { computeScore } from './score';
+import { submitScore } from './leaderboard';
 import levelsData from '../data/levels.json';
 
 /** On-disk format stores each region row as a compact string ("aabbbc"). */
@@ -396,6 +397,7 @@ async function onWin(): Promise<void> {
   });
   winScore.set(score);
   totalScore.update((t) => t + score);
+  void submitScore(get(totalScore)); // leaderboard (Р-43); failures never break the win flow
   streak.update((s) => s + 1);
   const s = get(streak);
   winStreak.set(s);

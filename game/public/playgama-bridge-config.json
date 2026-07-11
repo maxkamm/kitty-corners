@@ -16,5 +16,10 @@
     "supportedOrientations": [
       "portrait"
     ]
-  }
+  },
+  "leaderboards": [
+    {
+      "id": "total_score"
+    }
+  ]
 }

@@ -33,6 +33,26 @@ interface BridgeStorage {
   delete(keys: string | string[]): Promise<void>;
 }
 
+export type LeaderboardsType = 'not_available' | 'in_game' | 'native' | 'native_popup';
+
+export interface BridgeLeaderboardEntry {
+  id: string;
+  name: string;
+  photo: string;
+  score: number | string;
+  rank: number | string;
+}
+
+interface BridgeLeaderboards {
+  /** which leaderboard flow the current platform supports */
+  type: LeaderboardsType;
+  setScore(id: string, score: number): Promise<void>;
+  /** only when type === 'in_game' */
+  getEntries(id: string): Promise<BridgeLeaderboardEntry[]>;
+  /** only when type === 'native_popup' */
+  showNativePopup(id: string): Promise<void>;
+}
+
 interface BridgePlatform {
   language: string;
   id: string;
@@ -47,6 +67,8 @@ export interface Bridge {
   advertisement: BridgeAdvertisement;
   storage: BridgeStorage;
   platform: BridgePlatform;
+  /** optional: absent on older SDK builds */
+  leaderboards?: BridgeLeaderboards;
 }
 
 declare global {
