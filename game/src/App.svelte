@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icons from './components/Icons.svelte';
   import MainScreen from './screens/MainScreen.svelte';
+  import TutorialScreen from './screens/TutorialScreen.svelte';
   import GameScreen from './screens/GameScreen.svelte';
   import SettingsOverlay from './screens/SettingsOverlay.svelte';
   import DefeatScreen from './screens/DefeatScreen.svelte';
@@ -22,6 +23,8 @@
   <div class="screen-host" class:blurred={$settingsOpen}>
     {#if $screen === 'main'}
       <MainScreen />
+    {:else if $screen === 'tutorial'}
+      <TutorialScreen />
     {:else if $screen === 'game'}
       <GameScreen />
     {:else if $screen === 'defeat'}
