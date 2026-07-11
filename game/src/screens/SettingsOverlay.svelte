@@ -1,5 +1,6 @@
 <script lang="ts">
   /** Settings overlay = pause (GDD §5.3). Board underneath is blurred by App via .blurred. */
+  import HowToPlay from '../components/HowToPlay.svelte';
   import { settingsOpen, restartFromSettings, quitToMenu, screen } from '../lib/game';
   import { soundOn, vibrationOn, patternMarksOn } from '../lib/settings';
 
@@ -25,12 +26,7 @@
   }}
 >
   <div class="sheet">
-    {#if showHow}
-      <h2>How to play</h2>
-      <p class="how">Place one cat in every color region — exactly one per row and column, and cats can never touch, not even diagonally.</p>
-      <p class="how">Tap a cell to mark it with an ✕. Press and hold to place a cat.</p>
-      <button class="cta" on:click={() => (showHow = false)}>Back</button>
-    {:else if confirmRestart}
+    {#if confirmRestart}
       <h2>Restart level?</h2>
       <p class="how">Your marks and hearts will reset. Your streak stays safe.</p>
       <button class="cta" on:click={restartFromSettings}>Yes, restart</button>
@@ -54,6 +50,10 @@
       {/if}
     {/if}
   </div>
+
+  {#if showHow}
+    <HowToPlay on:close={() => (showHow = false)} />
+  {/if}
 </div>
 
 <style>
