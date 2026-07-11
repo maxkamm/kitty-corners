@@ -397,8 +397,8 @@ async function onWin(): Promise<void> {
   });
   winScore.set(score);
   totalScore.update((t) => t + score);
-  void submitScore(get(totalScore)); // leaderboard (Р-43); failures never break the win flow
-  queueGain(score, get(totalScore), reducedMotion()); // desktop panel choreography (Р-44)
+  const newTotal = get(totalScore);
+  void submitScore(newTotal); // leaderboard (Р-43); failures never break the win flow
   streak.update((s) => s + 1);
   const s = get(streak);
   winStreak.set(s);
@@ -418,6 +418,7 @@ async function onWin(): Promise<void> {
   sendPlatformMessage('level_completed');
   if (reducedMotion()) {
     screen.set('victory');
+    queueGain(score, newTotal, true); // panel updates instantly, no flight
     return;
   }
   inputLocked = true;
@@ -426,6 +427,8 @@ async function onWin(): Promise<void> {
     inputLocked = false;
     celebrating.set(false);
     screen.set('victory');
+    // Р-44: the "+points" flight starts ON the win screen, not during the celebration
+    queueGain(score, newTotal);
   }, CELEBRATION_MS);
 }
 
