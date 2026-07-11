@@ -1,6 +1,8 @@
 <script lang="ts">
   /** Victory (GDD §5.5, Р-30): Win streak feature card + Best streak + time pill + confetti. */
-  import { winLevel, winStreak, bestStreak, winTime, nextLevel } from '../lib/game';
+  import { winLevel, winStreak, bestStreak, winTime, winScore, totalScore, nextLevel } from '../lib/game';
+
+  const fmtNum = (n: number): string => n.toLocaleString('en-US');
 
   const CONF_COLORS = ['#F4C892', '#A9DBF5', '#93D4B8', '#E7BFD7', '#FF9457'];
   const confetti = Array.from({ length: 26 }, (_, i) => ({
@@ -48,6 +50,11 @@
         <span class="node next"><span class="n">{$winStreak + 1}</span></span>
       </div>
       <div class="streak-best">Best streak · <b>{$bestStreak}</b></div>
+    </div>
+    <div class="score-pill">
+      <span class="gain">+{fmtNum($winScore)}</span>
+      <span class="lbl">points</span>
+      <span class="total">Total · <b>{fmtNum($totalScore)}</b></span>
     </div>
     <div class="time-pill"><span class="lbl">Your time</span> {fmtTime($winTime)}</div>
   </div>
@@ -241,6 +248,40 @@
   .streak-best b {
     color: var(--ink);
   }
+  .score-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 99px;
+    padding: 8px 18px;
+    box-shadow: 0 3px 0 var(--edge), var(--shadow);
+    font-weight: 800;
+    font-size: 14px;
+    z-index: 1;
+  }
+  .score-pill .gain {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--good);
+    animation: pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.45s both;
+  }
+  .score-pill .lbl {
+    color: var(--ink-soft);
+    font-weight: 700;
+  }
+  .score-pill .total {
+    color: var(--ink-soft);
+    font-weight: 700;
+    font-size: 12px;
+    border-left: 1.5px solid var(--line);
+    padding-left: 10px;
+  }
+  .score-pill .total b {
+    color: var(--ink);
+  }
   .time-pill {
     display: flex;
     align-items: center;
@@ -289,6 +330,7 @@
       display: none;
     }
     .plus-pop,
+    .score-pill .gain,
     .node.current,
     .mascot {
       animation: none;

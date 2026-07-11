@@ -8,10 +8,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "test": "npm run test:solver && npm run test:game && npm run test:tutorial",
+    "test": "npm run test:solver && npm run test:game && npm run test:tutorial && npm run test:score",
     "test:solver": "node --experimental-strip-types --import ./tests/support/register-loader.mjs tests/solver.test.ts",
     "test:game": "node --experimental-strip-types --import ./tests/support/register-loader.mjs tests/game.test.ts",
-    "test:tutorial": "node --experimental-strip-types --import ./tests/support/register-loader.mjs tests/tutorial.test.ts"
+    "test:tutorial": "node --experimental-strip-types --import ./tests/support/register-loader.mjs tests/tutorial.test.ts",
+    "test:score": "node --experimental-strip-types --import ./tests/support/register-loader.mjs tests/score.test.ts"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.1.2",

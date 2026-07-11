@@ -15,6 +15,8 @@ export interface LevelDef {
    * Optional: when absent, the game auto-picks the solution cat that eliminates the most cells.
    */
   givens?: { row: number; col: number }[];
+  /** generator metadata; steps = solver step count, used as the score difficulty base (Р-42) */
+  meta?: { steps: number; [k: string]: unknown };
 }
 
 export type CellState = 'empty' | 'x' | 'cat';
