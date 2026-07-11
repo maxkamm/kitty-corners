@@ -35,6 +35,9 @@ const store = new Map<string, string>();
 
 // ---- import module under test + collaborators (singletons) ----
 const game = await import('../src/lib/game.ts');
+// These tests exercise the real level flow; mark the first-run tutorial as done
+// so startGame() goes straight to the level (the tutorial has its own tests).
+game.tutorialDone.set(true);
 const { analytics } = await import('../src/lib/analytics.ts');
 const { ads } = await import('../src/lib/ads.ts');
 import { get } from 'svelte/store';
