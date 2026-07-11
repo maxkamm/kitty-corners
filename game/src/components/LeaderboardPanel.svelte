@@ -67,7 +67,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    overflow: hidden;
+    /* no overflow clipping: the "+points" chip flies in across the board */
   }
   .head {
     display: flex;
