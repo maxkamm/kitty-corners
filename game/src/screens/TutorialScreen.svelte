@@ -72,7 +72,9 @@
   <section class="tut">
     <div class="tut-top">
       <div class="tut-chip">Tutorial</div>
-      <button class="link-quiet" on:click={skipTutorial}>Skip</button>
+      {#if !$tutFinished}
+        <button class="link-quiet" on:click={skipTutorial}>Skip</button>
+      {/if}
     </div>
 
     <div class="bubble" role="status">
