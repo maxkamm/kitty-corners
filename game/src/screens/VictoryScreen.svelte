@@ -3,7 +3,7 @@
   import LeaderboardOverlay from '../components/LeaderboardOverlay.svelte';
   import LeaderboardPanel from '../components/LeaderboardPanel.svelte';
   import { winLevel, winStreak, bestStreak, winTime, winScore, totalScore, nextLevel } from '../lib/game';
-  import { leaderboardType, showNativePopup } from '../lib/leaderboard';
+  import { leaderboardType, showNativePopup, winRanks } from '../lib/leaderboard';
 
   const fmtNum = (n: number): string => n.toLocaleString('en-US');
 
@@ -67,6 +67,22 @@
       <span class="total">Total · <b>{fmtNum($totalScore)}</b></span>
     </div>
     <div class="time-pill"><span class="lbl">Your time</span> {fmtTime($winTime)}</div>
+
+    <!-- Mobile rank strip (Р-45): compact climb animation; desktop shows the panel instead -->
+    {#if $leaderboardType === 'in_game' && $winRanks}
+      <button class="rank-strip" on:click={onTrophy} aria-label="Open leaderboard">
+        <svg class="cup"><use href="#ic-trophy" /></svg>
+        {#if $winRanks.to < $winRanks.from}
+          <span class="was">#{$winRanks.from}</span>
+          <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h11m0 0-4-4m4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <span class="now up">#{$winRanks.to}</span>
+          <span class="lbl">you climbed!</span>
+        {:else}
+          <span class="now">#{$winRanks.to}</span>
+          <span class="lbl">your rank</span>
+        {/if}
+      </button>
+    {/if}
   </div>
 
   <button class="cta next-btn" on:click={() => nextLevel()}>Next level</button>
@@ -338,6 +354,75 @@
     gap: 6px;
     z-index: 1;
   }
+  .rank-strip {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 99px;
+    padding: 8px 18px;
+    box-shadow: 0 3px 0 var(--edge), var(--shadow);
+    font-weight: 800;
+    font-size: 14px;
+    z-index: 1;
+    animation: strip-in 0.4s ease 0.5s both;
+  }
+  @keyframes strip-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .rank-strip .cup {
+    width: 16px;
+    height: 16px;
+    color: var(--accent);
+  }
+  .rank-strip .was {
+    color: var(--ink-soft);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    animation: was-fade 0.5s ease 1.1s both;
+  }
+  @keyframes was-fade {
+    from { opacity: 1; }
+    to { opacity: 0.45; }
+  }
+  .rank-strip .arrow {
+    width: 16px;
+    height: 16px;
+    color: var(--good);
+  }
+  .rank-strip .now {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+  }
+  /* the climb: new rank pops in rising from below */
+  .rank-strip .now.up {
+    color: var(--good);
+    animation: rank-climb 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 1.1s both;
+  }
+  @keyframes rank-climb {
+    0% {
+      opacity: 0;
+      transform: translateY(85%) scale(0.6);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  .rank-strip .lbl {
+    color: var(--ink-soft);
+    font-weight: 700;
+    font-size: 12px;
+  }
   .lb-side {
     display: none;
   }
@@ -353,6 +438,10 @@
     }
     /* the persistent panel replaces the overlay entry point on desktop */
     .lb-link {
+      display: none;
+    }
+    /* …and the panel's FLIP already shows the climb */
+    .rank-strip {
       display: none;
     }
   }
@@ -386,7 +475,10 @@
     .plus-pop,
     .score-pill .gain,
     .node.current,
-    .mascot {
+    .mascot,
+    .rank-strip,
+    .rank-strip .was,
+    .rank-strip .now.up {
       animation: none;
     }
   }

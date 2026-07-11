@@ -15,7 +15,7 @@
  * 'in_game' flow with fake entries, mirroring how the ads adapter keeps
  * ad-gated UI testable off-platform.
  */
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 import { getBridge, type LeaderboardsType, type BridgeLeaderboardEntry } from './bridge';
 
 export const LEADERBOARD_ID = 'total_score';
@@ -105,6 +105,21 @@ export const pendingGain = writable(0);
 export const FLY_MS = 800;
 let applyTimer: ReturnType<typeof setTimeout> | undefined;
 
+/**
+ * Rank movement for the win just played: shown by the desktop panel implicitly
+ * (FLIP) and by the compact rank strip on the mobile win screen (Р-45).
+ */
+export const winRanks = writable<{ from: number; to: number } | null>(null);
+
+/**
+ * Rank for a given total against a standings snapshot. Self rows are matched
+ * by flag (mock) — a real server row simply holds the pre-win total, so it
+ * never outranks either value and the count stays correct.
+ */
+function rankFor(entries: LeaderboardEntry[], total: number): number {
+  return 1 + entries.filter((e) => !e.self && e.score > total).length;
+}
+
 /** (Re)load the panel entries. No-op unless the flow is 'in_game' (or mock). */
 export async function refreshEntries(playerTotal: number): Promise<void> {
   const entries = await getEntries(playerTotal);
@@ -118,9 +133,22 @@ export async function refreshEntries(playerTotal: number): Promise<void> {
  * during the celebration.
  */
 export function queueGain(gain: number, newTotal: number, reducedMotion = false): void {
-  // only flows that render our own board animate
+  // only flows that render our own standings animate
   if (!mockMode && getBridge()?.leaderboards?.type !== 'in_game') return;
   clearTimeout(applyTimer);
+  winRanks.set(null);
+
+  // rank movement (Р-45) from the PRE-win snapshot; load it if nothing did yet
+  // (portrait never mounts the panel)
+  const oldTotal = newTotal - gain;
+  const cached = get(panelEntries);
+  const snapshot = cached ? Promise.resolve(cached) : getEntries(oldTotal);
+  void snapshot.then((entries) => {
+    if (!entries) return;
+    if (!cached) panelEntries.set(entries);
+    winRanks.set({ from: rankFor(entries, oldTotal), to: rankFor(entries, newTotal) });
+  });
+
   if (reducedMotion) {
     void refreshEntries(newTotal);
     return;
