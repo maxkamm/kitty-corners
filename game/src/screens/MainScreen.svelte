@@ -2,9 +2,17 @@
   import PawBg from '../components/PawBg.svelte';
   import LogoMark from '../components/LogoMark.svelte';
   import HowToPlay from '../components/HowToPlay.svelte';
+  import LeaderboardOverlay from '../components/LeaderboardOverlay.svelte';
   import { levelNumber, streak, startGame, settingsOpen } from '../lib/game';
+  import { leaderboardType, showNativePopup } from '../lib/leaderboard';
 
   let showHow = false;
+  let showBoard = false;
+
+  function onTrophy(): void {
+    if ($leaderboardType === 'native_popup') void showNativePopup();
+    else showBoard = true;
+  }
 </script>
 
 <section class="main">
@@ -14,9 +22,16 @@
     <button class="icon-btn" aria-label="Settings" on:click={() => settingsOpen.set(true)}>
       <svg><use href="#ic-gear" /></svg>
     </button>
-    <button class="icon-btn" aria-label="How to play" on:click={() => (showHow = true)}>
-      <svg><use href="#ic-q" /></svg>
-    </button>
+    <div class="right-icons">
+      {#if $leaderboardType === 'in_game' || $leaderboardType === 'native_popup'}
+        <button class="icon-btn" aria-label="Leaderboard" on:click={onTrophy}>
+          <svg><use href="#ic-trophy" /></svg>
+        </button>
+      {/if}
+      <button class="icon-btn" aria-label="How to play" on:click={() => (showHow = true)}>
+        <svg><use href="#ic-q" /></svg>
+      </button>
+    </div>
   </div>
 
   <div class="logo-wrap">
@@ -38,6 +53,9 @@
   {#if showHow}
     <HowToPlay on:close={() => (showHow = false)} />
   {/if}
+  {#if showBoard}
+    <LeaderboardOverlay on:close={() => (showBoard = false)} />
+  {/if}
 </section>
 
 <style>
@@ -55,6 +73,10 @@
     display: flex;
     justify-content: space-between;
     z-index: 1;
+  }
+  .right-icons {
+    display: flex;
+    gap: 10px;
   }
   .logo-wrap {
     display: flex;

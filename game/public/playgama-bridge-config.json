@@ -16,5 +16,19 @@
     "supportedOrientations": [
       "portrait"
     ]
+  },
+  "leaderboards": [
+    {
+      "id": "total_score"
+    }
+  ],
+  "saas": {
+    "publicToken": "cmrdq5o4n0170lj0h5pfuhh9c",
+    "leaderboards": {
+      "platforms": [
+        "playgama",
+        "qa_tool"
+      ]
+    }
   }
 }
