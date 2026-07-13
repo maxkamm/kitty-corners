@@ -128,7 +128,10 @@ button.icon-btn:active {
    Fixed colors: the sprite stays green/cream in the dark theme too. */
 .cta {
   font-family: 'Baloo 2', sans-serif;
-  font-weight: 700;
+  /* green buttons everywhere match the main-screen Play button */
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 1.05;
   background: transparent;
   color: #fff;
   text-shadow: 0 1.5px 2px rgba(60, 90, 10, 0.35);

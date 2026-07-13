@@ -2,7 +2,7 @@
   /** Settings overlay = pause (GDD §5.3). Board underneath is blurred by App via .blurred. */
   import HowToPlay from '../components/HowToPlay.svelte';
   import { settingsOpen, restartFromSettings, quitToMenu, screen } from '../lib/game';
-  import { soundOn, vibrationOn, patternMarksOn, darkMode, toggleDarkTheme } from '../lib/settings';
+  import { soundOn, vibrationOn } from '../lib/settings';
 
   let confirmRestart = false;
   let showHow = false;
@@ -33,24 +33,18 @@
       <button class="set-row center" on:click={() => (confirmRestart = false)}>Cancel</button>
     {:else}
       <h2>Settings</h2>
-      <button class="cta" on:click={close}>Continue</button>
+      <button class="set-row center" on:click={() => (showHow = true)}>How to play</button>
       <button class="set-row" on:click={() => soundOn.update((v) => !v)}>
         Sound <span class="toggle" class:off={!$soundOn} role="switch" aria-checked={$soundOn}></span>
       </button>
       <button class="set-row" on:click={() => vibrationOn.update((v) => !v)}>
         Vibration <span class="toggle" class:off={!$vibrationOn} role="switch" aria-checked={$vibrationOn}></span>
       </button>
-      <button class="set-row" on:click={() => patternMarksOn.update((v) => !v)}>
-        Pattern marks <span class="toggle" class:off={!$patternMarksOn} role="switch" aria-checked={$patternMarksOn}></span>
-      </button>
-      <button class="set-row" on:click={toggleDarkTheme}>
-        Dark theme <span class="toggle" class:off={!$darkMode} role="switch" aria-checked={$darkMode}></span>
-      </button>
-      <button class="set-row center" on:click={() => (showHow = true)}>How to play</button>
       {#if inGame}
         <button class="set-row center danger-row" on:click={() => (confirmRestart = true)}>Restart level</button>
         <button class="link-quiet exit" on:click={quitToMenu}>Quit to menu</button>
       {/if}
+      <button class="cta" on:click={close}>Continue</button>
     {/if}
   </div>
 
@@ -90,7 +84,6 @@
   }
   .sheet .cta {
     padding: 13px;
-    font-size: 18px;
   }
   .how {
     font-size: 15px;

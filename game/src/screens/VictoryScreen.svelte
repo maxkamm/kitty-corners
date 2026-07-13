@@ -43,7 +43,7 @@
   </div>
 
   <img class="mascot" src={catHappyUrl} alt="" draggable="false" />
-  <h1 class="big-title">Level {$winLevel} done!</h1>
+  <h1 class="big-title">Level {$winLevel + 1} done!</h1>
 
   <div class="win-stats">
     <div class="streak-card">
@@ -348,7 +348,6 @@
     width: 100%;
     max-width: 300px;
     padding: 15px;
-    font-size: 20px;
     margin-top: 8px;
     z-index: 1;
   }

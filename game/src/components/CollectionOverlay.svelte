@@ -88,6 +88,5 @@
   }
   .sheet .cta {
     padding: 12px;
-    font-size: 17px;
   }
 </style>

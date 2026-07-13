@@ -93,7 +93,6 @@
     width: 100%;
     max-width: 300px;
     padding: 15px;
-    font-size: 19px;
     display: flex;
     flex-direction: column;
     align-items: center;
