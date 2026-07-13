@@ -64,6 +64,11 @@ export function catForRegion(regionId: number | string): CatSprite {
 
 export { default as heartUrl } from '../assets/heart3d.webp';
 export { default as mainHeroUrl } from '../assets/main_hero.webp';
+/* Result-screen mascots (art skin v2): the gray BSH that fronts the logo —
+   happy on victory, neutral idle on defeat. These are re-centred on a square
+   canvas with even margins so the head floats without looking cropped. */
+export { default as catHappyUrl } from '../assets/mascot_happy.webp';
+export { default as catSadUrl } from '../assets/mascot_sad.webp';
 /* ui_atlas button sprites are referenced directly from component CSS:
    btn_green_pill.webp (Play), btn_squircle.webp (icon buttons);
    btn_green_small.webp / btn_white_pill.webp / btn_white_small.webp are reserved for CTAs. */

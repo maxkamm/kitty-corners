@@ -126,6 +126,10 @@
     flex-direction: column;
     padding: 16px 14px 18px;
     gap: 12px;
+    background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
+  }
+  :global(.dark) .game {
+    background: linear-gradient(180deg, #2a2433 0%, #241f2b 60%, #1e1a26 100%);
   }
   .game-top {
     display: flex;

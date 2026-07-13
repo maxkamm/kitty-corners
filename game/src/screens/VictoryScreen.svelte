@@ -4,6 +4,7 @@
   import LeaderboardPanel from '../components/LeaderboardPanel.svelte';
   import { winLevel, winStreak, bestStreak, winTime, winScore, totalScore, nextLevel } from '../lib/game';
   import { leaderboardType, showNativePopup, winRanks } from '../lib/leaderboard';
+  import { catHappyUrl } from '../lib/skin';
 
   const fmtNum = (n: number): string => n.toLocaleString('en-US');
 
@@ -32,14 +33,16 @@
 </script>
 
 <section class="win">
-  {#each confetti as c}
-    <div
-      class="confetti"
-      style="left:{c.left}%;background:{c.color};animation-delay:{c.delay}s;animation-duration:{c.dur}s"
-    ></div>
-  {/each}
+  <div class="fx" aria-hidden="true">
+    {#each confetti as c}
+      <div
+        class="confetti"
+        style="left:{c.left}%;background:{c.color};animation-delay:{c.delay}s;animation-duration:{c.dur}s"
+      ></div>
+    {/each}
+  </div>
 
-  <svg class="mascot" viewBox="0 0 100 100" aria-hidden="true"><use href="#cat-round-happy" /></svg>
+  <img class="mascot" src={catHappyUrl} alt="" draggable="false" />
   <h1 class="big-title">Level {$winLevel} done!</h1>
 
   <div class="win-stats">
@@ -86,11 +89,6 @@
   </div>
 
   <button class="cta next-btn" on:click={() => nextLevel()}>Next level</button>
-  {#if $leaderboardType === 'in_game' || $leaderboardType === 'native_popup'}
-    <button class="link-quiet lb-link" on:click={onTrophy}>
-      <svg class="lb-cup"><use href="#ic-trophy" /></svg> Leaderboard
-    </button>
-  {/if}
 
   {#if showBoard}
     <LeaderboardOverlay on:close={() => (showBoard = false)} />
@@ -110,16 +108,25 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 30px 26px;
-    gap: 13px;
+    /* safe center: centers when it fits, aligns to top (no clipping) when the
+       stack is taller than the screen; scrolls as a last resort */
+    justify-content: safe center;
+    padding: 24px 26px;
+    gap: 11px;
     text-align: center;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
+  }
+  :global(.dark) .win {
+    background: linear-gradient(180deg, #2a2433 0%, #241f2b 60%, #1e1a26 100%);
   }
   .mascot {
-    width: 128px;
-    height: 116px;
-    filter: drop-shadow(0 6px 10px rgba(60, 45, 70, 0.2));
+    width: 132px;
+    height: 132px;
+    flex: none;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 12px rgba(125, 74, 73, 0.22));
     transform-origin: 50% 85%;
     animation: mascot-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both,
       mascot-sway 2.6s ease-in-out 0.6s infinite;
@@ -156,9 +163,8 @@
     width: 100%;
     max-width: 300px;
     background: var(--surface);
-    border-radius: 20px;
-    border: 1.5px solid var(--line);
-    box-shadow: 0 5px 0 var(--edge), var(--shadow);
+    border-radius: 22px;
+    box-shadow: var(--shadow-pop);
     padding: 14px 18px 20px;
     display: flex;
     flex-direction: column;
@@ -294,10 +300,9 @@
     align-items: center;
     gap: 8px;
     background: var(--surface);
-    border: 1.5px solid var(--line);
     border-radius: 99px;
-    padding: 8px 18px;
-    box-shadow: 0 3px 0 var(--edge), var(--shadow);
+    padding: 9px 18px;
+    box-shadow: var(--shadow-pop);
     font-weight: 800;
     font-size: 14px;
     z-index: 1;
@@ -328,10 +333,9 @@
     align-items: center;
     gap: 7px;
     background: var(--surface);
-    border: 1.5px solid var(--line);
     border-radius: 99px;
-    padding: 8px 18px;
-    box-shadow: 0 3px 0 var(--edge), var(--shadow);
+    padding: 9px 18px;
+    box-shadow: var(--shadow-pop);
     font-weight: 800;
     font-size: 14px;
     z-index: 1;
@@ -348,21 +352,14 @@
     margin-top: 8px;
     z-index: 1;
   }
-  .lb-link {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    z-index: 1;
-  }
   .rank-strip {
     display: flex;
     align-items: center;
     gap: 7px;
     background: var(--surface);
-    border: 1.5px solid var(--line);
     border-radius: 99px;
-    padding: 8px 18px;
-    box-shadow: 0 3px 0 var(--edge), var(--shadow);
+    padding: 9px 18px;
+    box-shadow: var(--shadow-pop);
     font-weight: 800;
     font-size: 14px;
     z-index: 1;
@@ -436,19 +433,16 @@
       width: 240px;
       z-index: 1;
     }
-    /* the persistent panel replaces the overlay entry point on desktop */
-    .lb-link {
-      display: none;
-    }
-    /* …and the panel's FLIP already shows the climb */
+    /* the panel's FLIP already shows the climb on desktop */
     .rank-strip {
       display: none;
     }
   }
-  .lb-cup {
-    width: 16px;
-    height: 16px;
-    color: var(--accent);
+  .fx {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
   }
   .confetti {
     position: absolute;

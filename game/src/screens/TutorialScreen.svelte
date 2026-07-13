@@ -122,6 +122,10 @@
     flex-direction: column;
     padding: 16px 14px 18px;
     gap: 12px;
+    background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
+  }
+  :global(.dark) .tut {
+    background: linear-gradient(180deg, #2a2433 0%, #241f2b 60%, #1e1a26 100%);
   }
   .tut-top {
     display: flex;
@@ -130,16 +134,22 @@
   }
   .tut-chip {
     font-family: 'Baloo 2', sans-serif;
-    font-weight: 700;
-    font-size: 20px;
+    font-weight: 800;
+    font-size: 18px;
+    color: #7d4a49;
+    background: url('../assets/btn_white_small.webp') center / 100% 100% no-repeat;
+    padding: 7px 18px;
+    border-radius: 16px;
+    filter: drop-shadow(0 3px 6px rgba(125, 74, 73, 0.14));
   }
   .bubble {
     background: var(--surface);
-    border: 1.5px solid var(--line);
-    border-radius: 16px;
-    padding: 12px 14px;
-    box-shadow: var(--shadow);
-    min-height: 86px;
+    border-radius: 18px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow-pop);
+    /* fixed height (sized to the tallest hint) so it doesn't jump step to step */
+    height: 156px;
+    flex: none;
     display: flex;
     flex-direction: column;
     gap: 10px;

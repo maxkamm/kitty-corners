@@ -67,8 +67,8 @@
   }
   .cat-card {
     background: var(--surface);
-    border-radius: 16px;
-    box-shadow: var(--shadow);
+    border-radius: 18px;
+    box-shadow: var(--shadow-pop);
     padding: 12px 8px 9px;
     display: flex;
     flex-direction: column;

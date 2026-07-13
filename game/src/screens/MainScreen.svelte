@@ -24,10 +24,7 @@
   <img class="deco pawtrail" src={mainPawtrailUrl} alt="" draggable="false" />
 
   <div class="top-icons">
-    <button class="squircle" aria-label="Settings" on:click={() => settingsOpen.set(true)}>
-      <svg><use href="#ic-gear" /></svg>
-    </button>
-    <div class="right-icons">
+    <div class="left-icons">
       {#if $streak > 0}
         <div class="squircle streak-badge" aria-label="{$streak} level streak">
           <svg viewBox="0 0 24 28" class="flame"><use href="#ic-flame" /></svg>
@@ -38,6 +35,9 @@
         <svg><use href="#ic-q" /></svg>
       </button>
     </div>
+    <button class="squircle" aria-label="Settings" on:click={() => settingsOpen.set(true)}>
+      <svg><use href="#ic-gear" /></svg>
+    </button>
   </div>
 
   <img class="hero" src={mainHeroUrl} alt="Kitty Corners — a cozy logic puzzle" draggable="false" />
@@ -52,14 +52,14 @@
 
     <button class="play-big" on:click={startGame}>
       Play
-      <small>Level {$levelNumber} <svg viewBox="0 0 24 24"><use href="#ic-paw" /></svg></small>
+      <small>Level {$levelNumber}</small>
     </button>
 
     <div class="side-btn">
-      <button class="squircle big" aria-label="Stats" on:click={onStats}>
-        <svg><use href="#ic-bars" /></svg>
+      <button class="squircle big" aria-label="Leaderboard" on:click={onStats}>
+        <svg><use href="#ic-trophy" /></svg>
       </button>
-      <span class="side-label">Stats</span>
+      <span class="side-label">Leaderboard</span>
     </div>
   </div>
 
@@ -119,7 +119,7 @@
     justify-content: space-between;
     z-index: 1;
   }
-  .right-icons {
+  .left-icons {
     display: flex;
     gap: 12px;
   }
@@ -219,13 +219,5 @@
     font-weight: 800;
     font-size: 15px;
     color: #e7f2bb;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .play-big small svg {
-    width: 16px;
-    height: 16px;
-    color: #4c7b0f;
   }
 </style>
