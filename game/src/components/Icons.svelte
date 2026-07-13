@@ -76,8 +76,17 @@
     <symbol id="soft-x" viewBox="0 0 24 24">
       <path d="M6 6 L18 18 M18 6 L6 18" stroke="var(--ink)" stroke-width="4" stroke-linecap="round" />
     </symbol>
+    <!-- solid chunky gear, 6 rounded teeth + big hole (kc_reference) -->
     <symbol id="ic-gear" viewBox="0 0 24 24">
-      <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Zm8-3.5.02-1.53-2.1-.63a6 6 0 0 0-.63-1.5l1.05-1.94-1.09-1.08-1.93 1.05a6 6 0 0 0-1.5-.63L13.53 4h-1.53l-.63 2.1a6 6 0 0 0-1.5.63L7.93 5.68 6.84 6.76 7.9 8.7a6 6 0 0 0-.63 1.5L5 10.82v1.53l2.1.63c.14.53.35 1.03.63 1.5l-1.05 1.94 1.08 1.08 1.94-1.05c.47.28.97.49 1.5.63l.63 2.1h1.53l.63-2.1a6 6 0 0 0 1.5-.63l1.94 1.05 1.08-1.08-1.05-1.94c.28-.47.49-.97.63-1.5l2.1-.63Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+      <g fill="currentColor">
+        <rect x="9.9" y="2.5" width="4.2" height="6.4" rx="2" />
+        <rect x="9.9" y="2.5" width="4.2" height="6.4" rx="2" transform="rotate(60 12 12)" />
+        <rect x="9.9" y="2.5" width="4.2" height="6.4" rx="2" transform="rotate(120 12 12)" />
+        <rect x="9.9" y="2.5" width="4.2" height="6.4" rx="2" transform="rotate(180 12 12)" />
+        <rect x="9.9" y="2.5" width="4.2" height="6.4" rx="2" transform="rotate(240 12 12)" />
+        <rect x="9.9" y="2.5" width="4.2" height="6.4" rx="2" transform="rotate(300 12 12)" />
+        <path fill-rule="evenodd" d="M12 5.3 a6.7 6.7 0 1 0 0.001 0 Z M12 9.2 a2.8 2.8 0 1 1 -0.001 0 Z" />
+      </g>
     </symbol>
     <symbol id="ic-trophy" viewBox="0 0 24 24">
       <path d="M8 4h8v3.5a4 4 0 0 1-8 0V4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
@@ -115,6 +124,26 @@
       <path d="M12 2.6a6.2 6.2 0 0 0-3.7 11.2c.6.5 1 1.2 1.1 2h5.2c.1-.8.5-1.5 1.1-2A6.2 6.2 0 0 0 12 2.6Z" fill="currentColor" />
       <rect x="9.5" y="17" width="5" height="1.7" rx=".85" fill="currentColor" />
       <rect x="10.1" y="19.4" width="3.8" height="1.6" rx=".8" fill="currentColor" />
+    </symbol>
+    <!-- bar chart for the Stats squircle (kc_main_screen) -->
+    <symbol id="ic-bars" viewBox="0 0 24 24">
+      <rect x="4.2" y="10.5" width="4" height="9" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.9" />
+      <rect x="10" y="5" width="4" height="14.5" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.9" />
+      <rect x="15.8" y="8" width="4" height="11.5" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.9" />
+    </symbol>
+    <!-- art skin v2: linear icons for the white squircle action buttons (kc_reference) -->
+    <symbol id="ic-cathead-line" viewBox="0 0 24 24">
+      <path
+        d="M5.4 9.6 L5 4.8 Q5 3.9 5.8 4.4 L9.2 6.8 Q10.5 6.2 12 6.2 Q13.5 6.2 14.8 6.8 L18.2 4.4 Q19 3.9 19 4.8 L18.6 9.6 Q19.8 11.3 19.8 13.4 Q19.8 19.4 12 19.4 Q4.2 19.4 4.2 13.4 Q4.2 11.3 5.4 9.6 Z"
+        fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" />
+      <circle cx="9" cy="12.4" r="1.05" fill="currentColor" />
+      <circle cx="15" cy="12.4" r="1.05" fill="currentColor" />
+      <path d="M10.9 15.4 h2.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+    </symbol>
+    <symbol id="ic-bulb-line" viewBox="0 0 24 24">
+      <path d="M12 6.4a4.6 4.6 0 0 0-2.7 8.3c.4.35.8.85.9 1.5h3.6c.1-.65.5-1.15.9-1.5A4.6 4.6 0 0 0 12 6.4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+      <path d="M10.3 18.6h3.4M11 20.6h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+      <path d="M12 2.4v1.8M5.7 5.2l1.3 1.3M18.3 5.2 17 6.5M3.6 11.2h1.9M18.5 11.2h1.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
     </symbol>
     <symbol id="ic-flame" viewBox="0 0 24 28">
       <path d="M12 1.5 C8.5 7 4.5 9.5 4.5 15.5 a7.5 7.5 0 0 0 15 0 C19.5 9.5 15.5 7 12 1.5 Z" fill="url(#flameG)" />

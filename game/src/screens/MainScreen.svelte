@@ -1,53 +1,66 @@
 <script lang="ts">
-  import PawBg from '../components/PawBg.svelte';
-  import LogoMark from '../components/LogoMark.svelte';
+  /** Main menu — art skin v2, laid out per kc_main_screen.png. */
   import HowToPlay from '../components/HowToPlay.svelte';
   import LeaderboardOverlay from '../components/LeaderboardOverlay.svelte';
+  import CollectionOverlay from '../components/CollectionOverlay.svelte';
   import { levelNumber, streak, startGame, settingsOpen } from '../lib/game';
   import { leaderboardType, showNativePopup } from '../lib/leaderboard';
+  import { mainHeroUrl, mainLeavesUrl, mainButterflyUrl, mainPawtrailUrl } from '../lib/skin';
 
   let showHow = false;
   let showBoard = false;
+  let showCollection = false;
 
-  function onTrophy(): void {
+  function onStats(): void {
     if ($leaderboardType === 'native_popup') void showNativePopup();
     else showBoard = true;
   }
 </script>
 
 <section class="main">
-  <PawBg />
+  <!-- decor cut from the reference: leaves (top-left), butterfly trail, paw trail -->
+  <img class="deco leaves" src={mainLeavesUrl} alt="" draggable="false" />
+  <img class="deco butterfly" src={mainButterflyUrl} alt="" draggable="false" />
+  <img class="deco pawtrail" src={mainPawtrailUrl} alt="" draggable="false" />
 
   <div class="top-icons">
-    <button class="icon-btn" aria-label="Settings" on:click={() => settingsOpen.set(true)}>
-      <svg><use href="#ic-gear" /></svg>
-    </button>
-    <div class="right-icons">
-      {#if $leaderboardType === 'in_game' || $leaderboardType === 'native_popup'}
-        <button class="icon-btn" aria-label="Leaderboard" on:click={onTrophy}>
-          <svg><use href="#ic-trophy" /></svg>
-        </button>
+    <div class="left-icons">
+      {#if $streak > 0}
+        <div class="squircle streak-badge" aria-label="{$streak} level streak">
+          <svg viewBox="0 0 24 28" class="flame"><use href="#ic-flame" /></svg>
+          <b>{$streak}</b>
+        </div>
       {/if}
-      <button class="icon-btn" aria-label="How to play" on:click={() => (showHow = true)}>
+      <button class="squircle" aria-label="How to play" on:click={() => (showHow = true)}>
         <svg><use href="#ic-q" /></svg>
       </button>
     </div>
+    <button class="squircle" aria-label="Settings" on:click={() => settingsOpen.set(true)}>
+      <svg><use href="#ic-gear" /></svg>
+    </button>
   </div>
 
-  <div class="logo-wrap">
-    <LogoMark />
-    <h1 class="logo-name">Kitty<br /><span class="row2">Corners</span></h1>
-    <div class="tagline">a cozy logic puzzle</div>
-  </div>
+  <img class="hero" src={mainHeroUrl} alt="Kitty Corners — a cozy logic puzzle" draggable="false" />
 
   <div class="main-bottom">
-    {#if $streak > 0}
-      <div class="streak-chip">
-        <svg class="flame-s"><use href="#ic-flame" /></svg>
-        {$streak} level streak
-      </div>
-    {/if}
-    <button class="cta play-btn" on:click={startGame}>Play <small>Level {$levelNumber}</small></button>
+    <div class="side-btn">
+      <button class="squircle big" aria-label="Collection" on:click={() => (showCollection = true)}>
+        <svg><use href="#ic-cathead-line" /></svg>
+      </button>
+      <span class="side-label">Collection</span>
+    </div>
+
+    <button class="play-big" on:click={startGame}>
+      Play
+      <small>Level {$levelNumber}</small>
+    </button>
+
+    <div class="side-btn">
+      <button class="squircle big" aria-label="Leaderboard" on:click={onStats}>
+        <svg><use href="#ic-trophy" /></svg>
+      </button>
+      <span class="side-label">Leaderboard</span>
+    </div>
   </div>
 
   {#if showHow}
@@ -55,6 +68,9 @@
   {/if}
   {#if showBoard}
     <LeaderboardOverlay on:close={() => (showBoard = false)} />
+  {/if}
+  {#if showCollection}
+    <CollectionOverlay on:close={() => (showCollection = false)} />
   {/if}
 </section>
 
@@ -66,7 +82,36 @@
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: 28px 24px 40px;
+    padding: 24px 22px 34px;
+    background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
+    overflow: hidden;
+  }
+  :global(.dark) .main {
+    background: linear-gradient(180deg, #2a2433 0%, #241f2b 60%, #1e1a26 100%);
+  }
+  .deco {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .leaves {
+    top: 0;
+    left: 0;
+    width: 53%;
+  }
+  .butterfly {
+    top: 17%;
+    right: 6%;
+    width: 26%;
+  }
+  .pawtrail {
+    left: 0;
+    bottom: 21%;
+    width: 100%;
+  }
+  :global(.dark) .deco {
+    opacity: 0.55;
   }
   .top-icons {
     width: 100%;
@@ -74,67 +119,105 @@
     justify-content: space-between;
     z-index: 1;
   }
-  .right-icons {
+  .left-icons {
     display: flex;
-    gap: 10px;
+    gap: 12px;
   }
-  .logo-wrap {
+  .squircle {
+    width: 58px;
+    height: 58px;
+    flex: none;
+    border-radius: 20px;
+    /* ui_atlas: blank squircle sprite; icons overlaid on top */
+    background: url('../assets/btn_squircle.webp') center / 100% 100% no-repeat;
+    filter: drop-shadow(0 5px 8px rgba(125, 74, 73, 0.18));
+    color: #7d4a49; /* fixed: sprite stays cream in dark theme */
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 14px;
-    z-index: 1;
+    justify-content: center;
+    transition: transform 0.07s;
   }
-  .logo-name {
+  button.squircle:active {
+    transform: translateY(3px);
+  }
+  .squircle svg {
+    width: 27px;
+    height: 27px;
+  }
+  .streak-badge {
+    width: auto;
+    padding: 0 14px;
+    gap: 5px;
     font-family: 'Baloo 2', sans-serif;
-    font-weight: 800;
-    font-size: 44px;
-    line-height: 0.95;
-    text-align: center;
-    letter-spacing: -0.5px;
+    font-size: 20px;
   }
-  .logo-name .row2 {
-    color: var(--accent);
+  .streak-badge .flame {
+    width: 21px;
+    height: 25px;
   }
-  .tagline {
-    color: var(--ink-soft);
-    font-weight: 700;
-    font-size: 14px;
+  .hero {
+    width: min(78%, 340px);
+    z-index: 1;
   }
   .main-bottom {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 18px;
+    z-index: 1;
+  }
+  .side-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
-    z-index: 1;
-    width: 100%;
+    gap: 7px;
   }
-  .streak-chip {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--surface);
-    border: 1.5px solid var(--line);
-    border-radius: 99px;
-    padding: 9px 18px;
-    box-shadow: 0 4px 0 var(--edge), var(--shadow);
+  .side-btn .big {
+    width: 64px;
+    height: 64px;
+    border-radius: 22px;
+  }
+  .side-btn .big svg {
+    width: 31px;
+    height: 31px;
+  }
+  .side-label {
     font-family: 'Baloo 2', sans-serif;
     font-weight: 700;
-    font-size: 16px;
+    font-size: 14px;
+    color: var(--ink);
   }
-  .play-btn {
-    width: 100%;
-    max-width: 280px;
-    padding: 16px 20px;
-    font-size: 24px;
+  /* big green Play: glossy pill sprite from ui_atlas */
+  .play-big {
+    flex: 1;
+    max-width: 260px;
+    aspect-ratio: 552 / 187;
+    padding: 6px 20px 12px;
+    border-radius: 26px;
+    background: url('../assets/btn_green_pill.webp') center / 100% 100% no-repeat;
+    filter: drop-shadow(0 6px 10px rgba(105, 90, 60, 0.25));
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: 30px;
+    line-height: 1.05;
+    color: #fff;
+    text-shadow: 0 1.5px 2px rgba(60, 90, 10, 0.4);
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    gap: 2px;
+    transition: transform 0.08s;
   }
-  .play-btn small {
+  .play-big:active {
+    transform: translateY(4px);
+    filter: drop-shadow(0 2px 4px rgba(105, 90, 60, 0.25));
+  }
+  .play-big small {
     font-family: 'Nunito', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    opacity: 0.85;
+    font-weight: 800;
+    font-size: 15px;
+    color: #e7f2bb;
   }
 </style>

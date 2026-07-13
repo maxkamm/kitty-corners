@@ -111,6 +111,11 @@ function activeSeconds(): number {
   );
 }
 
+/** Live elapsed seconds for the HUD timer (art skin v2 header). */
+export function elapsedSeconds(): number {
+  return Math.floor((activeMs + (runningSince !== null ? Date.now() - runningSince : 0)) / 1000);
+}
+
 settingsOpen.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
 settingsOpen.subscribe((v) => {
   if (get(screen) === 'game') sendPlatformMessage(v ? 'level_paused' : 'level_resumed');

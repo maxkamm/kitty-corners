@@ -31,6 +31,7 @@
   <div class="sheet">
     <h2>How to play</h2>
 
+    <div class="slides">
     {#if slide === 0}
       <div class="rule-row">
         <svg viewBox="0 0 36 36" aria-hidden="true">
@@ -87,6 +88,7 @@
         <p>No timer. Solve levels back to back to grow your <b>streak</b> — and take all the time you like.</p>
       </div>
     {/if}
+    </div>
 
     <div class="dots" aria-hidden="true">
       {#each [0, 1, 2] as d}
@@ -111,6 +113,10 @@
   .sheet {
     width: 100%;
     max-width: 330px;
+    /* one fixed height across all three slides (sized to the tallest);
+       clamps + scrolls on very short screens (e.g. phone landscape) */
+    height: 432px;
+    max-height: calc(100% - 48px);
     background: var(--bg);
     border-radius: 24px;
     padding: 22px 20px;
@@ -124,15 +130,25 @@
     font-weight: 700;
     font-size: 22px;
     text-align: center;
+    flex: none;
+  }
+  .slides {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    overflow-y: auto;
   }
   .rule-row {
     display: flex;
     align-items: center;
     gap: 12px;
     background: var(--surface);
-    border: 1.5px solid var(--line);
-    border-radius: 14px;
+    border-radius: 16px;
     padding: 10px 12px;
+    box-shadow: var(--shadow-pop);
   }
   .rule-row svg {
     width: 44px;
@@ -152,6 +168,7 @@
     display: flex;
     justify-content: center;
     gap: 7px;
+    flex: none;
   }
   .dot {
     width: 8px;
@@ -166,5 +183,6 @@
   .sheet .cta {
     padding: 13px;
     font-size: 18px;
+    flex: none;
   }
 </style>

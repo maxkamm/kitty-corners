@@ -8,6 +8,7 @@
    */
   import type { LevelDef, CellState } from '../lib/types';
   import { tapCell, commitCat } from '../lib/game';
+  import { catForRegion } from '../lib/skin';
 
   export let level: LevelDef;
   export let cells: CellState[];
@@ -30,6 +31,14 @@
   /** KC-2: larger boards may grow beyond 372px so cells reach 40px+ on wide screens */
   $: basePx = n >= 9 ? n * 44 : 372;
   $: sizeLimit = maxPx > 0 ? Math.min(basePx, maxPx) : basePx;
+
+  /* art skin v2 (kc_reference): flat tiles on the page bg, gap ≈3.7% of a cell,
+     corner radius ≈13% of a cell — scaled from the 1024px-wide reference mock. */
+  $: cellPx = sizeLimit / n;
+  $: gapPx = Math.max(3, Math.round(cellPx * 0.037));
+  $: radPx = Math.round(cellPx * 0.13);
+  /* white backing panel peeking out past the tiles — a neat outline (kc_reference) */
+  $: padPx = Math.max(5, Math.round(gapPx * 1.6));
 
   /** intro timings: cat pops first, X marks ripple out by Chebyshev distance */
   const INTRO_CAT_DELAY_MS = 120;
@@ -73,6 +82,12 @@
   function cellBg(r: number, c: number): string {
     const id = level.regions[r][c];
     return `var(--${level.colors?.[id] ?? id})`;
+  }
+
+  /** cat sprite for the cell — the breed is tied to the region (art skin) */
+  function catSrc(i: number, joyful: boolean): string {
+    const sprite = catForRegion(level.regions[Math.floor(i / n)][i % n]);
+    return joyful ? sprite.happy : sprite.idle;
   }
 
   /** Thick contour where the neighbouring cell belongs to another region (GDD §6.6). */
@@ -137,7 +152,7 @@
   role="grid"
   tabindex="-1"
   aria-label="Puzzle board {n} by {n}"
-  style="grid-template-columns:repeat({n},1fr);grid-template-rows:repeat({n},1fr);width:min({sizeLimit}px,100%)"
+  style="grid-template-columns:repeat({n},1fr);grid-template-rows:repeat({n},1fr);width:min({sizeLimit}px,100%);gap:{gapPx}px;--cell-r:{radPx}px;padding:{padPx}px;border-radius:{radPx + padPx}px"
   on:contextmenu|preventDefault
 >
   {#each level.regions as row, r}
@@ -150,7 +165,7 @@
         class:guide={guideCells.includes(i)}
         role="gridcell"
         tabindex="-1"
-        style="background:{cellBg(r, c)};{regionShadow(r, c) ? `box-shadow:${regionShadow(r, c)}` : ''}"
+        style="background-color:{cellBg(r, c)};{regionShadow(r, c) ? `box-shadow:${regionShadow(r, c)}` : ''}"
         on:pointerdown={(e) => onDown(e, i)}
         on:pointerup={() => onUp(i)}
         on:pointermove={onMove}
@@ -159,15 +174,15 @@
         on:contextmenu={(e) => onContext(e, i)}
       >
         {#if cells[i] === 'cat'}
-          <svg
+          <img
             class="cat"
             class:celebrate
             class:given-delay={givens.includes(i)}
             style="--wave-d:{c * 70}ms;--gd:{INTRO_CAT_DELAY_MS}ms"
-            aria-label={givens.includes(i) ? 'pre-placed cat' : 'cat'}
-          >
-            <use href="#cat-round" />
-          </svg>
+            src={catSrc(i, celebrate)}
+            draggable="false"
+            alt={givens.includes(i) ? 'pre-placed cat' : 'cat'}
+          />
           <span class="pop" aria-hidden="true" style="--pop-base:{givens.includes(i) ? INTRO_CAT_DELAY_MS : 0}ms">
             {#each PARTICLES as p, k}
               <i style="--dx:{p.dx}%;--dy:{p.dy}%;--pd:{k * 12}ms"></i>
@@ -179,10 +194,10 @@
             class:fade-out={celebrate}
             class:intro={introOrigin >= 0}
             style={introOrigin >= 0 ? `--xd:${introXDelay(i)}ms` : ''}
+            viewBox="0 0 24 24"
+            role="img"
             aria-label="excluded"
-          >
-            <use href="#soft-x" />
-          </svg>
+          ><use href="#ic-paw" /></svg>
         {/if}
         {#if charging === i}
           <svg class="charge" viewBox="0 0 40 40" aria-hidden="true">
@@ -200,19 +215,21 @@
     display: grid;
     width: 100%;
     aspect-ratio: 1;
-    border: 3px solid var(--ink);
-    border-radius: 14px;
-    overflow: hidden;
-    background: var(--ink);
-    gap: 1px;
+    border: none;
+    /* art skin v2 (kc_reference): white backing panel outlines the flat tiles */
+    background: var(--surface);
+    box-shadow: var(--shadow);
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
   }
   .cell {
     position: relative;
+    border-radius: var(--cell-r, 8px);
+    box-shadow: 0 1px 3px rgba(125, 74, 73, 0.07);
   }
-  .cell svg {
+  .cell svg,
+  .cell img {
     position: absolute;
     top: 9%;
     left: 9%;
@@ -220,29 +237,45 @@
     height: 82%;
     pointer-events: none;
   }
+  .cell img {
+    object-fit: contain;
+  }
+  .cell .cat {
+    /* -15% vs the mock: heads sit inside the tile with a slight top overhang */
+    top: -3%;
+    left: 6%;
+    width: 88%;
+    height: 94%;
+    filter: drop-shadow(0 2.5px 2px rgba(70, 40, 15, 0.22));
+  }
   .cell .xmark {
-    top: 33%;
-    left: 33%;
-    width: 34%;
-    height: 34%;
-    opacity: 0.55;
+    /* paw mark = darker tint of the tile color, like the reference */
+    top: 30%;
+    left: 30%;
+    width: 40%;
+    height: 40%;
+    color: rgba(63, 36, 26, 0.55);
+    opacity: 0.35;
   }
   /* commit: soft landing with a single gentle overshoot (smooth easing across keyframes) */
   .cell .cat {
     transform-origin: 50% 85%;
-    animation: cat-land 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: cat-land 0.42s cubic-bezier(0.22, 1, 0.36, 1);
   }
   @keyframes cat-land {
     0% {
-      transform: scale(0.5) translateY(-10%);
+      transform: scale(0.25) translateY(-28%);
       opacity: 0;
     }
-    60% {
-      transform: scale(1.05) translateY(0);
+    55% {
+      transform: scale(1.18) translateY(2%);
       opacity: 1;
     }
-    80% {
-      transform: scale(0.98, 1.02);
+    75% {
+      transform: scale(0.92, 1.08) translateY(0);
+    }
+    90% {
+      transform: scale(1.04, 0.97);
     }
     100% {
       transform: scale(1);
@@ -265,7 +298,7 @@
     }
     100% {
       transform: scale(1) rotate(0);
-      opacity: 0.55;
+      opacity: 0.35;
     }
   }
   /* joy wave before Victory: column-staggered hops */
@@ -344,6 +377,7 @@
     content: '';
     position: absolute;
     inset: 0;
+    border-radius: var(--cell-r, 8px);
     background: var(--danger);
     opacity: 0.45;
     animation: err-fade 0.6s forwards;
