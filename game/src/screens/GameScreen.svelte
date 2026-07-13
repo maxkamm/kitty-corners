@@ -2,6 +2,8 @@
   import Board from '../components/Board.svelte';
   import Hearts from '../components/Hearts.svelte';
   import RuleChips from '../components/RuleChips.svelte';
+  import LeaderboardPanel from '../components/LeaderboardPanel.svelte';
+  import { leaderboardType } from '../lib/leaderboard';
   let wrapH = 0;
 
   import {
@@ -46,23 +48,29 @@
     />
   </div>
 
-  {#if $rewardedSupported}
-    <div class="game-bottom">
-      <button
-        class="round-btn"
-        aria-label="Place one cat for me"
-        disabled={$autocatUsed}
-        on:click={() => useAutocat()}
-      >
-        <svg><use href="#ic-cathead" /></svg>
-        <span class="ad-tag"><svg width="10" height="10" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg> ad</span>
-      </button>
-      <button class="round-btn" aria-label="Hint: next logical step" on:click={() => useHint()}>
-        <svg><use href="#ic-bulb" /></svg>
-        <span class="ad-tag"><svg width="10" height="10" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg> ad</span>
-      </button>
-    </div>
-  {/if}
+  <div class="side">
+    <!-- Desktop only (Р-44): standings always on screen, right of the board -->
+    {#if $leaderboardType === 'in_game'}
+      <div class="lb-slot"><LeaderboardPanel /></div>
+    {/if}
+    {#if $rewardedSupported}
+      <div class="game-bottom">
+        <button
+          class="round-btn"
+          aria-label="Place one cat for me"
+          disabled={$autocatUsed}
+          on:click={() => useAutocat()}
+        >
+          <svg><use href="#ic-cathead" /></svg>
+          <span class="ad-tag"><svg width="10" height="10" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg> ad</span>
+        </button>
+        <button class="round-btn" aria-label="Hint: next logical step" on:click={() => useHint()}>
+          <svg><use href="#ic-bulb" /></svg>
+          <span class="ad-tag"><svg width="10" height="10" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg> ad</span>
+        </button>
+      </div>
+    {/if}
+  </div>
 
   {#if $adNotice}
     <div class="ad-toast" role="status">{$adNotice}</div>
@@ -94,6 +102,13 @@
     align-items: center;
     flex: 1;
     min-height: 0;
+  }
+  /* Portrait: .side is transparent to the flex layout, the panel is hidden. */
+  .side {
+    display: contents;
+  }
+  .lb-slot {
+    display: none;
   }
   .game-bottom {
     display: flex;
@@ -204,12 +219,25 @@
       grid-area: board;
       height: 100%;
     }
-    .game-bottom {
+    /* Desktop: right column = leaderboard panel + action buttons (Р-44) */
+    .side {
       grid-area: actions;
+      display: flex;
       flex-direction: column;
+      align-items: center;
+      gap: 18px;
       justify-self: end;
       align-self: center;
-      gap: 30px;
+      width: 100%;
+      max-width: 240px;
+    }
+    .lb-slot {
+      display: block;
+      width: 100%;
+    }
+    .game-bottom {
+      flex-direction: row;
+      gap: 24px;
       padding-bottom: 0;
     }
   }
