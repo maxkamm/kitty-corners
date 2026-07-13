@@ -7,13 +7,11 @@
   import DefeatScreen from './screens/DefeatScreen.svelte';
   import VictoryScreen from './screens/VictoryScreen.svelte';
   import { screen, settingsOpen } from './lib/game';
-  import './lib/settings'; // initialize persisted settings side-effects
+  import { darkMode } from './lib/settings'; // also initializes persisted settings side-effects
 
-  // Theme: token sets from mockup (:root / .dark), follow system preference
-  const mq = window.matchMedia('(prefers-color-scheme: dark)');
-  const applyTheme = (dark: boolean) => document.documentElement.classList.toggle('dark', dark);
-  applyTheme(mq.matches);
-  mq.addEventListener?.('change', (e) => applyTheme(e.matches));
+  // Theme: token sets (:root / .dark). Follows the system until the player
+  // flips the toggle in Settings (lib/settings.ts resolves the preference).
+  darkMode.subscribe((dark) => document.documentElement.classList.toggle('dark', dark));
 </script>
 
 <Icons />

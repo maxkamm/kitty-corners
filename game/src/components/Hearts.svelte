@@ -4,6 +4,8 @@
    * Juice pass: on loss the burning heart shakes, flashes and collapses into the dent,
    * heart-colored shards fly out; the whole row gives a short shake.
    */
+  import { heartUrl } from '../lib/skin';
+
   export let value: number;
   export let max = 3;
   export let size = 33;
@@ -40,11 +42,11 @@
     {#each Array(max) as _, i}
       <span class="slot">
         {#if i < value}
-          <svg class="heart-full"><use href="#ic-heart-full" /></svg>
+          <img class="heart-full" src={heartUrl} alt="" draggable="false" />
         {:else}
-          <svg class="heart-empty"><use href="#ic-heart-empty" /></svg>
+          <img class="heart-empty" src={heartUrl} alt="" draggable="false" />
           {#if i === lostIndex}
-            <svg class="heart-burn" aria-hidden="true"><use href="#ic-heart-full" /></svg>
+            <img class="heart-burn" src={heartUrl} aria-hidden="true" alt="" draggable="false" />
             <span class="shards" aria-hidden="true">
               {#each SHARDS as s, k}
                 <i style="--dx:{s.dx}px;--dy:{s.dy}px;--rot:{s.r}deg;--sd:{k * 20}ms"></i>
@@ -69,17 +71,20 @@
     height: var(--hs);
     flex: none;
   }
-  .slot svg {
+  .slot svg,
+  .slot img {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+    object-fit: contain;
   }
   .heart-full {
     filter: drop-shadow(0 2px 3px rgba(90, 60, 60, 0.28));
   }
   .heart-empty {
-    filter: none;
+    filter: grayscale(1);
+    opacity: 0.35;
   }
   /* the burning heart: shake, flash, collapse into the dent */
   .heart-burn {
