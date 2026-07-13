@@ -137,7 +137,6 @@ let solverLog: SolverStep[] | null = null;
 /** Indices of the current level's unique-solution cats (commit target check). */
 let solutionSet = new Set<number>();
 let errorTimer: ReturnType<typeof setTimeout> | undefined;
-let hintTimer: ReturnType<typeof setTimeout> | undefined;
 let outcomeTimer: ReturnType<typeof setTimeout> | undefined;
 
 /**
@@ -530,12 +529,8 @@ export async function useAutocat(): Promise<void> {
   if (isSolved(level, get(cells))) void onWin();
 }
 
-/** Teaching hint: how long the banner + highlight stay on screen (text needs reading, §5.1). */
-const HINT_MS = 6000;
-
 /** Dismiss the current hint (banner + both highlight layers). */
 export function clearHint(): void {
-  clearTimeout(hintTimer);
   hint.set(null);
   hintCells.set([]);
   hintCause.set([]);
@@ -620,6 +615,5 @@ export async function useHint(): Promise<void> {
   hint.set(view);
   hintCells.set(view.targets);
   hintCause.set(view.cause);
-  clearTimeout(hintTimer);
-  hintTimer = setTimeout(clearHint, HINT_MS);
+  // no auto-hide: the banner stays until the player clicks anywhere (dismissed from the UI, §5.1)
 }

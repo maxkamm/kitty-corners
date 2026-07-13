@@ -40,6 +40,28 @@
   });
   onDestroy(() => clearInterval(tick));
 
+  /* Hint banner stays until the player clicks ANYWHERE (§5.1). While a hint is shown we
+     attach a one-shot global pointerdown listener; it is armed on the next tick so the
+     very click that opened the hint doesn't instantly dismiss it. */
+  let hintDismiss: (() => void) | null = null;
+  $: syncHintDismiss($hint);
+  function syncHintDismiss(h: unknown): void {
+    if (typeof window === 'undefined') return;
+    if (h && !hintDismiss) {
+      const handler = (): void => clearHint();
+      hintDismiss = handler;
+      setTimeout(() => {
+        if (hintDismiss === handler) window.addEventListener('pointerdown', handler, true);
+      }, 0);
+    } else if (!h && hintDismiss) {
+      window.removeEventListener('pointerdown', hintDismiss, true);
+      hintDismiss = null;
+    }
+  }
+  onDestroy(() => {
+    if (hintDismiss) window.removeEventListener('pointerdown', hintDismiss, true);
+  });
+
   function fmtTime(s: number): string {
     const m = Math.floor(s / 60);
     return `${String(m).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
@@ -72,7 +94,22 @@
     </button>
   </div>
 
-  <div class="rules-slot"><RuleChips /></div>
+  <div class="rules-slot">
+    <RuleChips />
+    {#if $hint}
+      <div class="hint-banner hint-{$hint.kind}" role="status">
+        <svg class="hb-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <use href={$hint.kind === 'place' ? '#ic-cathead-line' : '#ic-paw'} />
+        </svg>
+        <p>{$hint.text}</p>
+        <button class="hb-close" aria-label="Dismiss hint" on:click={() => clearHint()}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+    {/if}
+  </div>
 
   <div class="board-wrap" bind:clientHeight={wrapH}>
     <Board
@@ -114,20 +151,6 @@
       </button>
     </div>
   </div>
-
-  {#if $hint}
-    <div class="hint-banner hint-{$hint.kind}" role="status">
-      <svg class="hb-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <use href={$hint.kind === 'place' ? '#ic-cathead-line' : '#ic-paw'} />
-      </svg>
-      <p>{$hint.text}</p>
-      <button class="hb-close" aria-label="Dismiss hint" on:click={() => clearHint()}>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
-        </svg>
-      </button>
-    </div>
-  {/if}
 
   {#if $adNotice}
     <div class="ad-toast" role="status">{$adNotice}</div>
@@ -226,6 +249,9 @@
     border-radius: 1px;
     flex: none;
   }
+  .rules-slot {
+    position: relative;
+  }
   .board-wrap {
     display: flex;
     justify-content: center;
@@ -320,13 +346,13 @@
       animation: none;
     }
   }
-  /* Teaching hint banner (§5.1): sits under the board, above the action buttons */
+  /* Teaching hint banner (§5.1): overlays the three rule chips at the top of the board */
   .hint-banner {
     position: absolute;
     left: 50%;
-    bottom: 92px;
+    top: 0;
     transform: translateX(-50%);
-    width: min(92%, 460px);
+    width: 100%;
     box-sizing: border-box;
     display: flex;
     align-items: center;
@@ -338,7 +364,7 @@
     padding: 11px 12px 11px 13px;
     box-shadow: var(--shadow-pop, 0 8px 20px rgba(125, 74, 73, 0.22));
     animation: hint-banner-in 0.24s ease both;
-    z-index: 5;
+    z-index: 6;
   }
   /* place hints read as a "go here" cue → cat-head accent; eliminate stays warm (paws) */
   .hint-banner.hint-place {
@@ -378,7 +404,7 @@
     height: 16px;
   }
   @keyframes hint-banner-in {
-    from { opacity: 0; transform: translate(-50%, 8px); }
+    from { opacity: 0; transform: translate(-50%, -8px); }
     to { opacity: 1; transform: translate(-50%, 0); }
   }
   @media (prefers-reduced-motion: reduce) {
