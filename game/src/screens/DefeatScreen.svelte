@@ -4,10 +4,11 @@
   import Hearts from '../components/Hearts.svelte';
   import { streak, skipLevelWithAd, restartAfterDefeat, quitAfterDefeat } from '../lib/game';
   import { rewardedSupported, adNotice } from '../lib/ads';
+  import { catSadUrl } from '../lib/skin';
 </script>
 
 <section class="lose">
-  <svg class="mascot" viewBox="0 0 100 100" aria-hidden="true"><use href="#cat-round-sad" /></svg>
+  <img class="mascot" src={catSadUrl} alt="" draggable="false" />
 
   <Hearts value={0} size={45} />
 
@@ -47,20 +48,25 @@
     padding: 32px 26px;
     gap: 14px;
     text-align: center;
+    background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
+  }
+  :global(.dark) .lose {
+    background: linear-gradient(180deg, #2a2433 0%, #241f2b 60%, #1e1a26 100%);
   }
   .mascot {
-    width: 128px;
-    height: 116px;
-    filter: drop-shadow(0 6px 10px rgba(60, 45, 70, 0.2));
+    width: 144px;
+    height: 144px;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 12px rgba(125, 74, 73, 0.22));
     animation: mascot-droop 0.7s cubic-bezier(0.25, 0.9, 0.4, 1) both;
   }
   @keyframes mascot-droop {
     0% {
-      transform: translateY(-14px) scale(0.96);
+      transform: translateY(-14px) scale(0.96) rotate(-3deg);
       opacity: 0;
     }
     100% {
-      transform: translateY(0) scale(1);
+      transform: translateY(0) scale(1) rotate(-3deg);
       opacity: 1;
     }
   }
@@ -87,7 +93,6 @@
     width: 100%;
     max-width: 300px;
     padding: 15px;
-    font-size: 19px;
     display: flex;
     flex-direction: column;
     align-items: center;

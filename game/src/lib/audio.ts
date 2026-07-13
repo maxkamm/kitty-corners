@@ -50,6 +50,23 @@ function tone(freq: number, dur: number, type: OscillatorType, gain = 0.08, when
   osc.stop(t0 + dur + 0.02);
 }
 
+/** A single pitch-gliding note — used for playful "mrrp" cat chirps. */
+function glide(f0: number, f1: number, dur: number, type: OscillatorType, gain = 0.07, when = 0): void {
+  const c = ac();
+  if (!c) return;
+  const t0 = c.currentTime + when;
+  const osc = c.createOscillator();
+  const g = c.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(f0, t0);
+  osc.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+  g.gain.setValueAtTime(gain, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(g).connect(c.destination);
+  osc.start(t0);
+  osc.stop(t0 + dur + 0.02);
+}
+
 export const sfx = {
   tap(): void {
     if (audible()) tone(660, 0.06, 'triangle', 0.05);
@@ -66,7 +83,17 @@ export const sfx = {
   },
   win(): void {
     if (!audible()) return;
-    [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.18, 'triangle', 0.08, i * 0.09));
+    // joyful ascending C-major arpeggio, then a bright shimmer to finish
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.22, 'triangle', 0.09, i * 0.08));
+    tone(1318.5, 0.3, 'sine', 0.06, 0.34); // E6
+    tone(1567.98, 0.42, 'sine', 0.05, 0.4); // G6 sparkle
+  },
+  /** Happy cats bouncing on their cells — a rising trill of playful chirps. */
+  cheer(): void {
+    if (!audible()) return;
+    glide(500, 900, 0.14, 'triangle', 0.06, 0);
+    glide(650, 1100, 0.14, 'triangle', 0.06, 0.15);
+    glide(820, 1320, 0.18, 'triangle', 0.055, 0.32);
   },
   lose(): void {
     if (!audible()) return;

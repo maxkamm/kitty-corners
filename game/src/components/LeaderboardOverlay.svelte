@@ -63,7 +63,9 @@
   .overlay {
     position: absolute;
     inset: 0;
-    background: rgba(40, 30, 50, 0.45);
+    background: rgba(40, 30, 50, 0.62);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -108,24 +110,29 @@
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     overflow-y: auto;
     min-height: 0;
+    /* inner room so row shadows aren't clipped by the scroll container */
+    padding: 6px;
+    margin: -6px;
   }
   .row {
     display: flex;
     align-items: center;
     gap: 10px;
     background: var(--surface);
-    border: 1.5px solid var(--line);
-    border-radius: 12px;
-    padding: 8px 12px;
+    border-radius: 14px;
+    padding: 9px 12px;
     font-weight: 700;
     font-size: 14px;
+    box-shadow: 0 2px 6px rgba(125, 74, 73, 0.12);
+  }
+  :global(.dark) .row {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   }
   .row.self {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent-soft);
+    box-shadow: 0 0 0 2px var(--accent), 0 2px 6px rgba(125, 74, 73, 0.12);
   }
   .rank {
     width: 22px;
@@ -179,6 +186,5 @@
   }
   .sheet .cta {
     padding: 13px;
-    font-size: 18px;
   }
 </style>

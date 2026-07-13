@@ -88,6 +88,35 @@ eq('type read from bridge', get(lb.leaderboardType), 'in_game');
   eq('submitted value = cumulative total', setScoreCalls[0].score, get(game.totalScore));
 }
 
+// ---- desktop panel choreography (Р-44): win → fly chip → standings refresh ----
+{
+  const { panelEntries, pendingGain, refreshEntries, queueGain, FLY_MS } = lb;
+  await refreshEntries(100);
+  check('panel entries loaded', get(panelEntries) !== null);
+
+  queueGain(555, get(game.totalScore));
+  eq('gain is flying', get(pendingGain), 555);
+  await new Promise((r) => setTimeout(r, FLY_MS + 50));
+  eq('gain landed (chip cleared)', get(pendingGain), 0);
+  check('standings refreshed after landing', get(panelEntries) !== null);
+
+  // reduced motion: no flight, immediate refresh
+  queueGain(10, get(game.totalScore), true);
+  eq('no flight under reduced motion', get(pendingGain), 0);
+}
+
+// ---- rank movement for the mobile strip (Р-45) ----
+{
+  const { panelEntries, winRanks, queueGain, FLY_MS } = lb;
+  // snapshot: Alice 500, Player 100 → oldTotal 0 ranks 3rd, newTotal 555 ranks 1st
+  panelEntries.set(null);
+  queueGain(555, 555, true);
+  await new Promise((r) => setTimeout(r, 20));
+  eq('rank before the win', get(winRanks)?.from, 3);
+  eq('rank after the win', get(winRanks)?.to, 1);
+  await new Promise((r) => setTimeout(r, FLY_MS)); // let timers settle
+}
+
 // ---- adapter: not_available is a hard no-op ----
 {
   (globalThis as any).bridge.leaderboards.type = 'not_available';

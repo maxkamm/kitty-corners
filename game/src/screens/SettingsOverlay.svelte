@@ -2,7 +2,7 @@
   /** Settings overlay = pause (GDD §5.3). Board underneath is blurred by App via .blurred. */
   import HowToPlay from '../components/HowToPlay.svelte';
   import { settingsOpen, restartFromSettings, quitToMenu, screen } from '../lib/game';
-  import { soundOn, vibrationOn, patternMarksOn } from '../lib/settings';
+  import { soundOn, vibrationOn } from '../lib/settings';
 
   let confirmRestart = false;
   let showHow = false;
@@ -33,21 +33,18 @@
       <button class="set-row center" on:click={() => (confirmRestart = false)}>Cancel</button>
     {:else}
       <h2>Settings</h2>
-      <button class="cta" on:click={close}>Continue</button>
+      <button class="set-row center" on:click={() => (showHow = true)}>How to play</button>
       <button class="set-row" on:click={() => soundOn.update((v) => !v)}>
         Sound <span class="toggle" class:off={!$soundOn} role="switch" aria-checked={$soundOn}></span>
       </button>
       <button class="set-row" on:click={() => vibrationOn.update((v) => !v)}>
         Vibration <span class="toggle" class:off={!$vibrationOn} role="switch" aria-checked={$vibrationOn}></span>
       </button>
-      <button class="set-row" on:click={() => patternMarksOn.update((v) => !v)}>
-        Pattern marks <span class="toggle" class:off={!$patternMarksOn} role="switch" aria-checked={$patternMarksOn}></span>
-      </button>
-      <button class="set-row center" on:click={() => (showHow = true)}>How to play</button>
       {#if inGame}
         <button class="set-row center danger-row" on:click={() => (confirmRestart = true)}>Restart level</button>
         <button class="link-quiet exit" on:click={quitToMenu}>Quit to menu</button>
       {/if}
+      <button class="cta" on:click={close}>Continue</button>
     {/if}
   </div>
 
@@ -87,30 +84,32 @@
   }
   .sheet .cta {
     padding: 13px;
-    font-size: 18px;
   }
   .how {
     font-size: 15px;
     font-weight: 600;
     line-height: 1.45;
   }
+  /* settings rows on the white pill sprite (ui_atlas, 9-slice) */
   .set-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--surface);
+    background: transparent;
+    border: 14px solid transparent;
+    border-image: url('../assets/btn_white_small.webp') 72 fill / 20px stretch;
     border-radius: 14px;
-    padding: 13px 14px;
-    border: 1.5px solid var(--line);
+    padding: 4px 4px;
     font-weight: 700;
     font-size: 15px;
-    box-shadow: 0 4px 0 var(--edge), var(--shadow);
+    color: #7d4a49; /* sprite stays cream in dark theme */
+    filter: drop-shadow(0 3px 6px rgba(125, 74, 73, 0.14));
     transition: transform 0.07s;
     text-align: left;
   }
   .set-row:active {
     transform: translateY(3px);
-    box-shadow: 0 1px 0 var(--edge);
+    filter: drop-shadow(0 1px 2px rgba(125, 74, 73, 0.14));
   }
   .set-row.center {
     justify-content: center;

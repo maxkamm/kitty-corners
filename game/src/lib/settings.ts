@@ -17,3 +17,10 @@ vibrationOn.subscribe((v) => {
   setVibrationEnabled(v);
 });
 patternMarksOn.subscribe((v) => storage.set('patternMarks', v));
+
+/**
+ * Theme is locked to light for now — dark theme is temporarily disabled and its
+ * toggle is hidden from Settings. Device colour-scheme is intentionally ignored;
+ * the app always starts (and stays) light.
+ */
+export const darkMode = writable<boolean>(false);

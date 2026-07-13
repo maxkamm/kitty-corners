@@ -12,7 +12,7 @@ import { sfx } from './audio';
 import { vibrate } from './haptics';
 import { solveWithLog } from './solver';
 import { computeScore } from './score';
-import { submitScore } from './leaderboard';
+import { submitScore, queueGain } from './leaderboard';
 import levelsData from '../data/levels.json';
 
 /** On-disk format stores each region row as a compact string ("aabbbc"). */
@@ -109,6 +109,11 @@ function activeSeconds(): number {
     1,
     Math.round((activeMs + (runningSince !== null ? Date.now() - runningSince : 0)) / 1000)
   );
+}
+
+/** Live elapsed seconds for the HUD timer (art skin v2 header). */
+export function elapsedSeconds(): number {
+  return Math.floor((activeMs + (runningSince !== null ? Date.now() - runningSince : 0)) / 1000);
 }
 
 settingsOpen.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
@@ -397,7 +402,8 @@ async function onWin(): Promise<void> {
   });
   winScore.set(score);
   totalScore.update((t) => t + score);
-  void submitScore(get(totalScore)); // leaderboard (Р-43); failures never break the win flow
+  const newTotal = get(totalScore);
+  void submitScore(newTotal); // leaderboard (Р-43); failures never break the win flow
   streak.update((s) => s + 1);
   const s = get(streak);
   winStreak.set(s);
@@ -405,7 +411,6 @@ async function onWin(): Promise<void> {
   // progress persists at the moment of victory (KC-3), not on «Next level»
   winLevel.set(get(levelNumber));
   levelNumber.update((n) => n + 1);
-  sfx.win();
   vibrate([20, 30, 20, 30, 40]);
   analytics.track('level_win', {
     level: get(winLevel),
@@ -416,15 +421,21 @@ async function onWin(): Promise<void> {
   });
   sendPlatformMessage('level_completed');
   if (reducedMotion()) {
+    sfx.win(); // joyful cue as the win screen appears
     screen.set('victory');
+    queueGain(score, newTotal, true); // panel updates instantly, no flight
     return;
   }
   inputLocked = true;
   celebrating.set(true);
+  sfx.cheer(); // joyful cats bouncing on their cells
   outcomeTimer = setTimeout(() => {
     inputLocked = false;
     celebrating.set(false);
+    sfx.win(); // joyful cue as the win screen appears
     screen.set('victory');
+    // Р-44: the "+points" flight starts ON the win screen, not during the celebration
+    queueGain(score, newTotal);
   }, CELEBRATION_MS);
 }
 

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kitty Corners — Collection windows (mockup v01)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    /* §6.4 light palette */
+    --bg:#FDF7EE; --surface:#FFF; --ink:#443E4C; --ink-soft:#8A8093;
+    --line:#EBDFCC; --edge:#E5D6BD; --accent:#FF9457; --accent-edge:#E0763B;
+    --heart:#FF6B81; --good:#5FBD8C; --danger:#E4605E;
+    --dent-deep:#BCB8CE; --dent-face:#DFDCEA;
+    /* region tokens */
+    --r1:#F4C892; --r2:#A9DBF5; --r3:#93D4B8; --r4:#F5EFA3; --r6:#EFAC90; --r8:#D5D2CC; --r9:#C7BCE8;
+    /* NEW: rarity tokens (proposed — to add into §6.4) */
+    --rar-common:#8A8093; --rar-uncommon:#5FBD8C; --rar-rare:#3E8FD6;
+    --rar-epic:#8258C8; --rar-legendary:#E8912B; --rar-legendary-2:#FFC24B;
+    --shadow:0 6px 16px rgba(90,70,60,.12);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#efe6d6;color:var(--ink);font-family:'Nunito',sans-serif;padding:28px 18px 60px}
+  .page-head{max-width:1180px;margin:0 auto 22px;text-align:center}
+  .page-head h1{font-family:'Baloo 2';font-weight:800;font-size:26px;margin:0 0 6px}
+  .page-head p{margin:0;color:#6b6472;font-size:14px}
+  .gallery{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:38px 30px;justify-content:center;align-items:flex-start}
+  .frame{width:328px}
+  .frame > .cap{margin-top:12px}
+  .cap b{font-family:'Baloo 2';font-weight:700;font-size:15px;display:block;color:var(--ink)}
+  .cap span{font-size:12.5px;color:#6b6472;line-height:1.45;display:block;margin-top:3px}
+  .cap em{color:var(--accent-edge);font-style:normal;font-weight:700}
+
+  /* phone */
+  .phone{position:relative;width:328px;height:660px;background:var(--bg);border-radius:34px;
+    box-shadow:0 18px 40px rgba(60,45,50,.22);overflow:hidden;border:1px solid #e8dcc6}
+  .status{height:26px}
+  .scr-head{display:flex;align-items:center;justify-content:space-between;padding:6px 18px 4px}
+  .scr-head .t{font-family:'Baloo 2';font-weight:700;font-size:16px}
+  .ico{width:34px;height:34px;border-radius:12px;background:var(--surface);border:1.5px solid var(--line);
+    border-bottom:4px solid var(--edge);display:flex;align-items:center;justify-content:center;font-size:16px}
+
+  /* pressability CTA §6.7 */
+  .cta{font-family:'Baloo 2';font-weight:800;font-size:17px;color:#fff;background:var(--accent);
+    border:none;border-bottom:4px solid var(--accent-edge);border-radius:16px;padding:13px;width:100%;text-align:center}
+
+  /* rarity badge */
+  .badge{display:inline-flex;align-items:center;gap:5px;font-family:'Baloo 2';font-weight:700;font-size:11px;
+    color:#fff;padding:3px 9px;border-radius:999px;letter-spacing:.3px;text-transform:uppercase}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .b-common{background:var(--rar-common)} .b-uncommon{background:var(--rar-uncommon)}
+  .b-rare{background:var(--rar-rare)} .b-epic{background:var(--rar-epic)}
+  .b-legendary{background:linear-gradient(135deg,var(--rar-legendary-2),var(--rar-legendary))}
+  .d-common{background:var(--rar-common)} .d-uncommon{background:var(--rar-uncommon)}
+  .d-rare{background:var(--rar-rare)} .d-epic{background:var(--rar-epic)}
+  .d-legendary{background:linear-gradient(135deg,var(--rar-legendary-2),var(--rar-legendary))}
+
+  /* ---------- WINDOW 1: in-level New cat card ---------- */
+  .board-bg{position:absolute;inset:0;filter:blur(5px) brightness(.9);opacity:.85}
+  .board-grid{position:absolute;top:120px;left:24px;width:280px;height:280px;border:3px solid var(--ink);
+    border-radius:14px;display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(6,1fr);overflow:hidden;background:var(--ink)}
+  .board-grid div{background:var(--r2)}
+  .dim{position:absolute;inset:0;background:rgba(40,30,50,.45)}
+  .newcat{position:absolute;left:34px;right:34px;top:150px;background:var(--surface);border-radius:26px;
+    padding:20px 18px 18px;box-shadow:0 22px 50px rgba(0,0,0,.3);text-align:center}
+  .ribbon{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;
+    font-family:'Baloo 2';font-weight:800;font-size:13px;padding:6px 18px;border-radius:999px;
+    border-bottom:3px solid var(--accent-edge);letter-spacing:1px}
+  .newcat .port{width:132px;height:132px;margin:10px auto 8px;border-radius:36px;background:var(--r1);
+    display:flex;align-items:center;justify-content:center;box-shadow:inset 0 -6px 14px rgba(0,0,0,.08)}
+  .newcat .port img{width:120px;height:120px;object-fit:contain}
+  .newcat h3{font-family:'Baloo 2';font-weight:800;font-size:24px;margin:2px 0 8px}
+  .tap-hint{margin-top:14px;font-size:12px;color:var(--ink-soft)}
+  .spark{position:absolute;font-size:18px;opacity:.9}
+
+  /* ---------- WINDOW 2: victory recap ---------- */
+  .vic{padding:14px 20px 18px;display:flex;flex-direction:column;align-items:center;gap:12px;height:100%}
+  .mascot{width:96px;height:96px;border-radius:50%;background:var(--r3);display:flex;align-items:center;justify-content:center;margin-top:6px}
+  .mascot img{width:82px;height:82px;object-fit:contain}
+  .vic h2{font-family:'Baloo 2';font-weight:800;font-size:22px;margin:0}
+  .streak-card{width:100%;background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:12px;text-align:center}
+  .streak-card .lbl{font-family:'Baloo 2';font-weight:800;font-size:11px;letter-spacing:1px;color:var(--ink-soft);text-transform:uppercase}
+  .streak-card .flame{font-size:26px;font-family:'Baloo 2';font-weight:800;margin-top:2px}
+  .pill{background:var(--surface);border-radius:999px;box-shadow:var(--shadow);padding:8px 18px;font-family:'Baloo 2';font-weight:700;font-size:14px}
+  /* the recap block — the compact one */
+  .recap{width:100%;background:#fff;border:1.5px dashed var(--accent);border-radius:18px;padding:12px 12px 14px}
+  .recap .rt{font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--accent-edge);text-transform:uppercase;letter-spacing:.5px;text-align:center;margin-bottom:10px}
+  .recap .row{display:flex;justify-content:center;gap:14px}
+  .mini{width:64px;text-align:center;position:relative}
+  .mini .mp{width:56px;height:56px;border-radius:16px;background:var(--r1);margin:0 auto 4px;display:flex;align-items:center;justify-content:center}
+  .mini .mp img{width:48px;height:48px;object-fit:contain}
+  .mini .nm{font-size:10px;font-weight:800;line-height:1.1}
+  .mini .newpip{position:absolute;top:-4px;right:4px;background:var(--accent);color:#fff;font-family:'Baloo 2';font-weight:800;font-size:8px;padding:2px 5px;border-radius:999px}
+  .rar-line{display:flex;align-items:center;gap:4px;justify-content:center;margin-top:2px;font-size:9px;color:var(--ink-soft);font-weight:800;text-transform:uppercase}
+
+  /* ---------- WINDOW 3: collection overlay ---------- */
+  .col-head{padding:12px 18px 8px}
+  .col-head .top{display:flex;align-items:center;justify-content:space-between}
+  .col-head h2{font-family:'Baloo 2';font-weight:800;font-size:22px;margin:0}
+  .prog{margin-top:8px}
+  .prog .pt{font-size:12px;font-weight:800;color:var(--ink-soft);margin-bottom:4px}
+  .bar{height:8px;border-radius:999px;background:var(--line);overflow:hidden}
+  .bar i{display:block;height:100%;width:45%;background:var(--accent);border-radius:999px}
+  .col-scroll{position:absolute;top:118px;bottom:0;left:0;right:0;overflow:hidden;padding:4px 16px 18px}
+  .sect{margin-bottom:14px}
+  .sect .sh{display:flex;align-items:center;gap:7px;font-family:'Baloo 2';font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin:0 0 8px}
+  .cgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .cc{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:9px 5px 7px;text-align:center;position:relative}
+  .cc .cp{width:52px;height:52px;margin:0 auto 5px;border-radius:15px;background:var(--r8);display:flex;align-items:center;justify-content:center}
+  .cc .cp img{width:46px;height:46px;object-fit:contain}
+  .cc .nm{font-size:9.5px;font-weight:800;line-height:1.1}
+  .cc .rd{width:7px;height:7px;border-radius:50%;margin:3px auto 0}
+  .cc.locked .cp{background:#e7ded2}
+  .cc.locked .cp img{filter:brightness(0);opacity:.16}
+  .cc.locked .qm{font-family:'Baloo 2';font-weight:800;font-size:22px;color:#c3b8a8}
+  .cc.locked .nm{color:#b7ac9c}
+  .cc .newpip{position:absolute;top:-5px;right:-5px;background:var(--accent);color:#fff;font-family:'Baloo 2';font-weight:800;font-size:8px;padding:2px 5px;border-radius:999px;box-shadow:0 2px 5px rgba(0,0,0,.15)}
+
+  /* ---------- WINDOW 4: cat detail ---------- */
+  .detail{position:absolute;inset:0;background:rgba(40,30,50,.45);display:flex;align-items:center;justify-content:center;padding:26px}
+  .dcard{width:100%;background:var(--surface);border-radius:26px;box-shadow:0 22px 50px rgba(0,0,0,.3);padding:20px 18px 18px;text-align:center;position:relative}
+  .dclose{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:10px;background:var(--bg);border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--ink-soft)}
+  .dcard .port{width:150px;height:150px;margin:6px auto 10px;border-radius:40px;background:var(--r1);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 -6px 14px rgba(0,0,0,.08)}
+  .dcard .port img{width:134px;height:134px;object-fit:contain}
+  .dcard h3{font-family:'Baloo 2';font-weight:800;font-size:26px;margin:2px 0 8px}
+  .stats{margin-top:16px;background:var(--bg);border-radius:16px;padding:12px 14px;text-align:left;display:flex;flex-direction:column;gap:9px}
+  .stats .r{display:flex;justify-content:space-between;font-size:13px}
+  .stats .r b{font-family:'Baloo 2';font-weight:800}
+  .stats .r span{color:var(--ink-soft);font-weight:700}
+  .note{margin-top:12px;font-size:11px;color:var(--ink-soft)}
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>Kitty Corners — окна коллекции котиков</h1>
+    <p>Макет v01 · post-MVP фича (GDD §10). Палитра §6.4, шрифты Baloo 2 / Nunito. Спрайты — реальные из <code>game/src/assets</code>. Портреты — <b>squircle</b> (вариант B).</p>
+  </div>
+
+  <div class="gallery">
+
+    <!-- WINDOW 1 -->
+    <div class="frame">
+      <div class="phone">
+        <div class="board-bg">
+          <div class="status"></div>
+          <div class="scr-head"><span class="t">Level 22</span><span class="t">❤❤❤</span><span class="ico">⚙</span></div>
+          <div class="board-grid" id="w1grid"></div>
+        </div>
+        <div class="dim"></div>
+        <div class="spark" style="left:44px;top:150px">✦</div>
+        <div class="spark" style="right:40px;top:180px">✦</div>
+        <div class="spark" style="left:60px;top:330px">✧</div>
+        <div class="newcat">
+          <div class="ribbon">NEW CAT!</div>
+          <div class="port"><img src="game/src/assets/k3_bengal.webp" alt="Bengal" /></div>
+          <h3>Bengal</h3>
+          <span class="badge b-rare"><span class="dot" style="background:#fff"></span>Rare</span>
+          <div class="tap-hint">tap to continue</div>
+        </div>
+      </div>
+      <div class="cap">
+        <b>1 · In-level «New cat!»</b>
+        <span>Всплывает <em>в момент успешного коммита</em> новой породы (Р-47). Ввод на паузе, тап/авто-таймаут закрывает. Портрет + имя + бейдж редкости + лента NEW. Пауза не идёт в «Your time».</span>
+      </div>
+    </div>
+
+    <!-- WINDOW 2 -->
+    <div class="frame">
+      <div class="phone">
+        <div class="vic">
+          <div class="status"></div>
+          <div class="mascot"><img src="game/src/assets/k_tabby_happy.webp" alt="mascot" /></div>
+          <h2>Level 22 done!</h2>
+          <div class="streak-card">
+            <div class="lbl">Win streak</div>
+            <div class="flame">🔥 8 <span style="color:var(--accent);font-size:16px">+1</span></div>
+          </div>
+          <!-- THE compact recap block -->
+          <div class="recap">
+            <div class="rt">✦ New cats this level ✦</div>
+            <div class="row">
+              <div class="mini">
+                <div class="newpip">NEW</div>
+                <div class="mp"><img src="game/src/assets/k3_bengal.webp" alt="Bengal" /></div>
+                <div class="nm">Bengal</div>
+                <div class="rar-line"><span class="dot" style="background:var(--rar-rare)"></span>Rare</div>
+              </div>
+              <div class="mini">
+                <div class="newpip">NEW</div>
+                <div class="mp"><img src="game/src/assets/k3_calico.webp" alt="Calico" /></div>
+                <div class="nm">Calico</div>
+                <div class="rar-line"><span class="dot" style="background:var(--rar-uncommon)"></span>Uncommon</div>
+              </div>
+            </div>
+          </div>
+          <div class="pill">Your time 1:24</div>
+          <div style="flex:1"></div>
+          <button class="cta">Next level</button>
+        </div>
+      </div>
+      <div class="cap">
+        <b>2 · Victory recap-блок</b>
+        <span>На Victory дублируем открытия <em>компактным блоком</em> (не полной карточкой): мини-портреты открытых на уровне пород + редкость. Живёт рядом со стриком/рангом. Нет новых — блок скрыт.</span>
+      </div>
+    </div>
+
+    <!-- WINDOW 3 -->
+    <div class="frame">
+      <div class="phone">
+        <div class="status"></div>
+        <div class="col-head">
+          <div class="top"><h2>Collection</h2><span class="ico">✕</span></div>
+          <div class="prog">
+            <div class="pt" id="progtxt">9 / 20 collected</div>
+            <div class="bar"><i id="progbar"></i></div>
+          </div>
+        </div>
+        <div class="col-scroll" id="colScroll"></div>
+      </div>
+      <div class="cap">
+        <b>3 · Collection (главный экран)</b>
+        <span>Прогресс X/N + бар, группировка по редкости. Открытые — портрет+имя+точка редкости (<em>NEW</em> до просмотра). Неоткрытые — силуэт (CSS-фильтр из спрайта) + «???». Тап по карточке → окно 4.</span>
+      </div>
+    </div>
+
+    <!-- WINDOW 4 -->
+    <div class="frame">
+      <div class="phone">
+        <div class="board-bg" style="filter:blur(4px) brightness(.95);opacity:.5">
+          <div class="status"></div>
+          <div class="col-head"><div class="top"><h2>Collection</h2><span class="ico">✕</span></div></div>
+        </div>
+        <div class="detail">
+          <div class="dcard">
+            <div class="dclose">✕</div>
+            <span class="badge b-rare" style="position:absolute;top:16px;left:16px"><span class="dot" style="background:#fff"></span>Rare</span>
+            <div class="port"><img src="game/src/assets/k3_bengal.webp" alt="Bengal" /></div>
+            <h3>Bengal</h3>
+            <div class="stats">
+              <div class="r"><span>Rarity</span><b style="color:var(--rar-rare)">Rare</b></div>
+              <div class="r"><span>Times seen</span><b>×3</b></div>
+              <div class="r"><span>First met</span><b>Level 22</b></div>
+            </div>
+            <div class="note">Only name &amp; rarity on cards — no flavor text (Р-54).</div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">
+        <b>4 · Cat detail (тап по коту)</b>
+        <span>Крупный портрет, имя, бейдж редкости и статы: <em>×встреч</em> и <em>первый уровень</em>. Для неоткрытого — «??? — keep playing to discover» + намёк на тир. Без флейвор-текстов.</span>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+  // fill window 1 board with a light region pattern
+  const g = document.getElementById('w1grid');
+  const tone = ['--r2','--r2','--r1','--r1','--r3','--r3'];
+  for(let i=0;i<36;i++){const d=document.createElement('div');d.style.background=`var(${tone[(Math.floor(i/6)+i)%6]})`;g.appendChild(d);}
+
+  // roster (20) — GDD §10.2
+  const A='game/src/assets/';
+  const roster=[
+    {n:'Bombay',t:'common',img:A+'k3_bombay.webp',u:1,c:14,f:1},
+    {n:'Tabby',t:'common',img:A+'k_tabby_idle.webp',u:1,c:11,f:1},
+    {n:'White',t:'common',img:A+'k_white_idle.webp',u:1,c:8,f:2},
+    {n:'Tuxedo',t:'common',img:A+'k_tuxedo_idle.webp',u:1,c:7,f:3},
+    {n:'Cream',t:'common',img:A+'k_cream_idle.webp',u:1,c:6,f:4},
+    {n:'British Shorthair',t:'common',img:A+'k3_bsh.webp',u:1,c:5,f:5},
+    {n:'Calico',t:'uncommon',img:A+'k3_calico.webp',u:1,c:1,f:22,new:1},
+    {n:'Siamese',t:'uncommon',img:A+'k3_siamese.webp',u:1,c:2,f:14},
+    {n:'Persian',t:'uncommon',img:A+'k3_persian.webp',u:0},
+    {n:'Scottish Fold',t:'uncommon',img:A+'k3_scottishfold.webp',u:0},
+    {n:'Bengal',t:'rare',img:A+'k3_bengal.webp',u:1,c:3,f:22,new:1},
+    {n:'Maine Coon',t:'rare',img:A+'k3_mainecoon.webp',u:0},
+    {n:'Ragdoll',t:'rare',img:A+'k3_ragdoll.webp',u:0},
+    {n:'Russian Blue',t:'rare',img:null,u:0},
+    {n:'Sphynx',t:'epic',img:A+'k3_sphynx.webp',u:0},
+    {n:'Abyssinian',t:'epic',img:null,u:0},
+    {n:'Norwegian Forest',t:'epic',img:null,u:0},
+    {n:'Golden',t:'legendary',img:null,u:0},
+    {n:'Void',t:'legendary',img:null,u:0},
+    {n:'Cosmic',t:'legendary',img:null,u:0},
+  ];
+  const tiers=[['common','Common'],['uncommon','Uncommon'],['rare','Rare'],['epic','Epic'],['legendary','Legendary']];
+  const scroll=document.getElementById('colScroll');
+  const unlocked=roster.filter(r=>r.u).length;
+  document.getElementById('progtxt').textContent=`${unlocked} / ${roster.length} collected`;
+  document.getElementById('progbar').style.width=(unlocked/roster.length*100).toFixed(0)+'%';
+  tiers.forEach(([key,label])=>{
+    const sect=document.createElement('div');sect.className='sect';
+    sect.innerHTML=`<div class="sh" style="color:var(--rar-${key})"><span class="dot" style="background:var(--rar-${key})"></span>${label}</div>`;
+    const grid=document.createElement('div');grid.className='cgrid';
+    roster.filter(r=>r.t===key).forEach(r=>{
+      const cc=document.createElement('div');cc.className='cc'+(r.u?'':' locked');
+      const inner = r.u
+        ? `<div class="cp"><img src="${r.img}" alt="${r.n}"/></div><div class="nm">${r.n}</div><div class="rd" style="background:var(--rar-${key})"></div>`
+        : `<div class="cp">${r.img?`<img src="${r.img}" alt=""/>`:`<span class="qm">?</span>`}</div><div class="nm">???</div><div class="rd" style="background:var(--rar-${key});opacity:.4"></div>`;
+      cc.innerHTML=(r.new?`<div class="newpip">NEW</div>`:'')+inner;
+      grid.appendChild(cc);
+    });
+    sect.appendChild(grid);scroll.appendChild(sect);
+  });
+</script>
+</body>
+</html>

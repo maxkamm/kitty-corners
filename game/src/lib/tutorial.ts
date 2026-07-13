@@ -9,6 +9,7 @@
  */
 import { writable, get } from 'svelte/store';
 import type { LevelDef, CellState } from './types';
+import { sfx } from './audio';
 
 /** Hand-built 4×4 level. Unique solution: (0,1) (1,3) (2,0) (3,2); given: (2,0). */
 export const TUTORIAL_LEVEL: LevelDef = {
@@ -115,8 +116,10 @@ function advanceIfStepDone(): void {
   const board = get(tutCells);
   const want: CellState = step.action === 'cat' ? 'cat' : 'x';
   if (step.targets.every((t) => board[t] === want)) {
-    if (get(tutStep) === STEPS.length - 1) tutFinished.set(true);
-    else tutStep.update((s) => s + 1);
+    if (get(tutStep) === STEPS.length - 1) {
+      tutFinished.set(true);
+      sfx.cheer(); // happy cats bounce at the end of the guided level
+    } else tutStep.update((s) => s + 1);
   }
 }
 
@@ -134,6 +137,7 @@ export function tutTap(cell: number): void {
     if (next[cell] === 'empty') next[cell] = 'x';
     return next;
   });
+  sfx.tap();
   advanceIfStepDone();
 }
 
@@ -146,5 +150,6 @@ export function tutCommit(cell: number): void {
     next[cell] = 'cat';
     return next;
   });
+  sfx.commit();
   advanceIfStepDone();
 }

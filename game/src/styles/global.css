@@ -2,34 +2,43 @@
    Source of truth: kitty-corners-screens-v22.html (GDD §6.4).
    Do not hardcode colors outside tokens; exceptions: hearts & flame (theme-independent). */
 :root {
-  --bg: #fdf7ee;
+  /* Art skin v2 — sampled from kc_reference.png */
+  --bg: #f6f1ee;
   --surface: #ffffff;
-  --surface-2: #f6eddf;
-  --ink: #443e4c;
-  --ink-soft: #8a8093;
-  --line: #ebdfcc;
-  --edge: #e5d6bd;
-  --accent: #ff9457;
-  --accent-ink: #7a3a12;
-  --accent-soft: #ffe3cf;
-  --heart: #ff6b81;
-  --good: #5fbd8c;
-  --danger: #e4605e;
-  --shadow: 0 6px 20px rgba(90, 70, 50, 0.12);
-  --region-line: rgba(68, 62, 76, 0.45);
-  --dent-deep: #bcb8ce;
-  --dent-face: #dfdcea;
-  --r1: #f4c892;
-  --r2: #a9dbf5;
-  --r3: #93d4b8;
-  --r4: #f5efa3;
-  --r5: #95b9de;
-  --r6: #efac90;
-  --r7: #e7bfd7;
-  --r8: #d5d2cc;
+  --surface-2: #f3ece4;
+  --ink: #7d4a49;
+  --ink-soft: #a3807c;
+  --line: #eadfd6;
+  --edge: #e2d5ca;
+  --accent: #fc956e;
+  --accent-ink: #8a4029;
+  --accent-soft: #ffe4d6;
+  --heart: #f8b2a1;
+  --good: #9db95a;
+  --danger: #e84d47;
+  --badge: #e84d47;
+  --shadow: 0 6px 20px rgba(125, 74, 73, 0.1);
+  /* voluminous card/button shadow (kc_reference): soft ambient + tight contact */
+  --shadow-pop: 0 8px 18px rgba(125, 74, 73, 0.16), 0 2px 5px rgba(125, 74, 73, 0.1);
+  --region-line: transparent;
+  --dent-deep: #e8ddd2;
+  --dent-face: #f3ece4;
+  /* legacy wood tones (old skin, still referenced by secondary screens) */
+  --wood: #b98a52;
+  --wood-dark: #8a5f33;
+  --wood-light: #dcb684;
+  /* region palette — sampled from kc_reference.png tiles */
+  --r1: #f0cda5;
+  --r2: #fc956e;
+  --r3: #c6d282;
+  --r4: #86bafc;
+  --r5: #f9b04a;
+  --r6: #bc96ea;
+  --r7: #f5a8c0;
+  --r8: #7fd4c4;
   /* palette extension for 9×9–10×10 boards (Р-39): every region gets a unique color */
-  --r9: #c7bce8;
-  --r10: #9ad1dc;
+  --r9: #d9b98c;
+  --r10: #a5d8f0;
 }
 .dark {
   --bg: #241f2b;
@@ -43,19 +52,23 @@
   --accent-ink: #3a1d08;
   --accent-soft: #5a4030;
   --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  --shadow-pop: 0 8px 18px rgba(0, 0, 0, 0.4), 0 2px 5px rgba(0, 0, 0, 0.25);
   --region-line: rgba(242, 236, 247, 0.35);
   --dent-deep: #191522;
   --dent-face: #332c3f;
-  --r1: #c99b5f;
-  --r2: #6fa8c9;
-  --r3: #5fa98a;
-  --r4: #c4bc6e;
-  --r5: #6c8fb5;
-  --r6: #c57f60;
-  --r7: #b588a8;
-  --r8: #8e8a93;
-  --r9: #7e71ad;
-  --r10: #5d93a3;
+  --wood: #6e5232;
+  --wood-dark: #4c3720;
+  --wood-light: #8a6b44;
+  --r1: #c5a075;
+  --r2: #cf6f4e;
+  --r3: #99a55c;
+  --r4: #5f8ecb;
+  --r5: #cc8a3a;
+  --r6: #9372c2;
+  --r7: #c57e95;
+  --r8: #5aa898;
+  --r9: #ad8a5d;
+  --r10: #7aa8c2;
 }
 
 * {
@@ -72,6 +85,9 @@ body {
   color: var(--ink);
   background: var(--bg);
   overscroll-behavior: none;
+}
+.dark body {
+  background-image: none;
 }
 #app {
   height: 100%;
@@ -108,32 +124,42 @@ button.icon-btn:active {
   width: 22px;
   height: 22px;
 }
+/* Primary CTA — glossy green pill sprite from ui_atlas (9-slice so any width works).
+   Fixed colors: the sprite stays green/cream in the dark theme too. */
 .cta {
   font-family: 'Baloo 2', sans-serif;
-  font-weight: 700;
-  background: var(--accent);
+  /* green buttons everywhere match the main-screen Play button */
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 1.05;
+  background: transparent;
   color: #fff;
+  text-shadow: 0 1.5px 2px rgba(60, 90, 10, 0.35);
+  border: 16px solid transparent;
+  border-image: url('../assets/btn_green_small.webp') 72 fill / 22px stretch;
   border-radius: 20px;
-  box-shadow: 0 6px 0 #e0763b, var(--shadow);
+  filter: drop-shadow(0 5px 8px rgba(105, 90, 60, 0.22));
   transition: transform 0.08s;
 }
 .cta:active {
   transform: translateY(3px);
-  box-shadow: 0 3px 0 #e0763b;
+  filter: drop-shadow(0 2px 3px rgba(105, 90, 60, 0.22));
 }
+/* Secondary — white pill sprite from ui_atlas */
 .btn-secondary {
   font-family: 'Baloo 2', sans-serif;
-  font-weight: 600;
-  background: var(--surface);
-  color: var(--ink);
+  font-weight: 700;
+  background: transparent;
+  color: #7d4a49;
+  border: 16px solid transparent;
+  border-image: url('../assets/btn_white_small.webp') 72 fill / 22px stretch;
   border-radius: 18px;
-  border: 2px solid var(--line);
-  box-shadow: 0 4px 0 var(--edge), var(--shadow);
+  filter: drop-shadow(0 4px 7px rgba(125, 74, 73, 0.16));
   transition: transform 0.07s;
 }
 .btn-secondary:active {
   transform: translateY(3px);
-  box-shadow: 0 1px 0 var(--edge);
+  filter: drop-shadow(0 1px 3px rgba(125, 74, 73, 0.16));
 }
 .link-quiet {
   color: var(--ink-soft);

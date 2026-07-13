@@ -1,8 +1,10 @@
 <script lang="ts">
   /** Victory (GDD §5.5, Р-30): Win streak feature card + Best streak + time pill + confetti. */
   import LeaderboardOverlay from '../components/LeaderboardOverlay.svelte';
+  import LeaderboardPanel from '../components/LeaderboardPanel.svelte';
   import { winLevel, winStreak, bestStreak, winTime, winScore, totalScore, nextLevel } from '../lib/game';
-  import { leaderboardType, showNativePopup } from '../lib/leaderboard';
+  import { leaderboardType, showNativePopup, winRanks } from '../lib/leaderboard';
+  import { catHappyUrl } from '../lib/skin';
 
   const fmtNum = (n: number): string => n.toLocaleString('en-US');
 
@@ -31,15 +33,17 @@
 </script>
 
 <section class="win">
-  {#each confetti as c}
-    <div
-      class="confetti"
-      style="left:{c.left}%;background:{c.color};animation-delay:{c.delay}s;animation-duration:{c.dur}s"
-    ></div>
-  {/each}
+  <div class="fx" aria-hidden="true">
+    {#each confetti as c}
+      <div
+        class="confetti"
+        style="left:{c.left}%;background:{c.color};animation-delay:{c.delay}s;animation-duration:{c.dur}s"
+      ></div>
+    {/each}
+  </div>
 
-  <svg class="mascot" viewBox="0 0 100 100" aria-hidden="true"><use href="#cat-round-happy" /></svg>
-  <h1 class="big-title">Level {$winLevel} done!</h1>
+  <img class="mascot" src={catHappyUrl} alt="" draggable="false" />
+  <h1 class="big-title">Level {$winLevel + 1} done!</h1>
 
   <div class="win-stats">
     <div class="streak-card">
@@ -66,17 +70,34 @@
       <span class="total">Total · <b>{fmtNum($totalScore)}</b></span>
     </div>
     <div class="time-pill"><span class="lbl">Your time</span> {fmtTime($winTime)}</div>
+
+    <!-- Mobile rank strip (Р-45): compact climb animation; desktop shows the panel instead -->
+    {#if $leaderboardType === 'in_game' && $winRanks}
+      <button class="rank-strip" on:click={onTrophy} aria-label="Open leaderboard">
+        <svg class="cup"><use href="#ic-trophy" /></svg>
+        {#if $winRanks.to < $winRanks.from}
+          <span class="was">#{$winRanks.from}</span>
+          <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h11m0 0-4-4m4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <span class="now up">#{$winRanks.to}</span>
+          <span class="lbl">you climbed!</span>
+        {:else}
+          <span class="now">#{$winRanks.to}</span>
+          <span class="lbl">your rank</span>
+        {/if}
+      </button>
+    {/if}
   </div>
 
   <button class="cta next-btn" on:click={() => nextLevel()}>Next level</button>
-  {#if $leaderboardType === 'in_game' || $leaderboardType === 'native_popup'}
-    <button class="link-quiet lb-link" on:click={onTrophy}>
-      <svg class="lb-cup"><use href="#ic-trophy" /></svg> Leaderboard
-    </button>
-  {/if}
 
   {#if showBoard}
     <LeaderboardOverlay on:close={() => (showBoard = false)} />
+  {/if}
+
+  <!-- Desktop (Р-44): the persistent panel stays on the right so any standings
+       movement that started during the celebration remains visible here -->
+  {#if $leaderboardType === 'in_game'}
+    <div class="lb-side"><LeaderboardPanel /></div>
   {/if}
 </section>
 
@@ -87,16 +108,25 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 30px 26px;
-    gap: 13px;
+    /* safe center: centers when it fits, aligns to top (no clipping) when the
+       stack is taller than the screen; scrolls as a last resort */
+    justify-content: safe center;
+    padding: 24px 26px;
+    gap: 11px;
     text-align: center;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
+  }
+  :global(.dark) .win {
+    background: linear-gradient(180deg, #2a2433 0%, #241f2b 60%, #1e1a26 100%);
   }
   .mascot {
-    width: 128px;
-    height: 116px;
-    filter: drop-shadow(0 6px 10px rgba(60, 45, 70, 0.2));
+    width: 132px;
+    height: 132px;
+    flex: none;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 12px rgba(125, 74, 73, 0.22));
     transform-origin: 50% 85%;
     animation: mascot-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both,
       mascot-sway 2.6s ease-in-out 0.6s infinite;
@@ -133,9 +163,8 @@
     width: 100%;
     max-width: 300px;
     background: var(--surface);
-    border-radius: 20px;
-    border: 1.5px solid var(--line);
-    box-shadow: 0 5px 0 var(--edge), var(--shadow);
+    border-radius: 22px;
+    box-shadow: var(--shadow-pop);
     padding: 14px 18px 20px;
     display: flex;
     flex-direction: column;
@@ -271,10 +300,9 @@
     align-items: center;
     gap: 8px;
     background: var(--surface);
-    border: 1.5px solid var(--line);
     border-radius: 99px;
-    padding: 8px 18px;
-    box-shadow: 0 3px 0 var(--edge), var(--shadow);
+    padding: 9px 18px;
+    box-shadow: var(--shadow-pop);
     font-weight: 800;
     font-size: 14px;
     z-index: 1;
@@ -305,10 +333,9 @@
     align-items: center;
     gap: 7px;
     background: var(--surface);
-    border: 1.5px solid var(--line);
     border-radius: 99px;
-    padding: 8px 18px;
-    box-shadow: 0 3px 0 var(--edge), var(--shadow);
+    padding: 9px 18px;
+    box-shadow: var(--shadow-pop);
     font-weight: 800;
     font-size: 14px;
     z-index: 1;
@@ -321,20 +348,100 @@
     width: 100%;
     max-width: 300px;
     padding: 15px;
-    font-size: 20px;
     margin-top: 8px;
     z-index: 1;
   }
-  .lb-link {
+  .rank-strip {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
+    background: var(--surface);
+    border-radius: 99px;
+    padding: 9px 18px;
+    box-shadow: var(--shadow-pop);
+    font-weight: 800;
+    font-size: 14px;
     z-index: 1;
+    animation: strip-in 0.4s ease 0.5s both;
   }
-  .lb-cup {
+  @keyframes strip-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .rank-strip .cup {
     width: 16px;
     height: 16px;
     color: var(--accent);
+  }
+  .rank-strip .was {
+    color: var(--ink-soft);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    animation: was-fade 0.5s ease 1.1s both;
+  }
+  @keyframes was-fade {
+    from { opacity: 1; }
+    to { opacity: 0.45; }
+  }
+  .rank-strip .arrow {
+    width: 16px;
+    height: 16px;
+    color: var(--good);
+  }
+  .rank-strip .now {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+  }
+  /* the climb: new rank pops in rising from below */
+  .rank-strip .now.up {
+    color: var(--good);
+    animation: rank-climb 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 1.1s both;
+  }
+  @keyframes rank-climb {
+    0% {
+      opacity: 0;
+      transform: translateY(85%) scale(0.6);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  .rank-strip .lbl {
+    color: var(--ink-soft);
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .lb-side {
+    display: none;
+  }
+  @media (min-aspect-ratio: 1 / 1) {
+    .lb-side {
+      display: block;
+      position: absolute;
+      right: 28px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 240px;
+      z-index: 1;
+    }
+    /* the panel's FLIP already shows the climb on desktop */
+    .rank-strip {
+      display: none;
+    }
+  }
+  .fx {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
   }
   .confetti {
     position: absolute;
@@ -361,7 +468,10 @@
     .plus-pop,
     .score-pill .gain,
     .node.current,
-    .mascot {
+    .mascot,
+    .rank-strip,
+    .rank-strip .was,
+    .rank-strip .now.up {
       animation: none;
     }
   }
