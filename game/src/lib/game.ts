@@ -3,9 +3,9 @@
  * Svelte stores; persistence via storage abstraction.
  */
 import { writable, derived, get } from 'svelte/store';
-import type { LevelDef, CellState, Screen, SolverStep } from './types';
+import type { LevelDef, CellState, Screen, SolverStep, HintView } from './types';
 import { storage } from './storage';
-import { ads, adActive } from './ads';
+import { ads, adActive, rewardedSupported } from './ads';
 import { platformPaused, sendPlatformMessage } from './platform';
 import { analytics } from './analytics';
 import { sfx } from './audio';
@@ -50,8 +50,14 @@ export const cells = writable<CellState[]>([]);
 export const autocatUsed = writable(false);
 /** cell indices flashing as error */
 export const errorCells = writable<number[]>([]);
-/** cell indices highlighted by hint */
+/** cell indices highlighted by hint (the TARGET layer: place cell / cells to mark) */
 export const hintCells = writable<number[]>([]);
+/** cell indices highlighted as the hint's REASON (quiet secondary layer, §5.2) */
+export const hintCause = writable<number[]>([]);
+/** the current teaching hint to render under the board, or null (§5.2) */
+export const hint = writable<HintView | null>(null);
+/** first (free) hint of the level already used → the next one is rewarded (Р-56) */
+export const hintFreeUsed = writable(false);
 /** victory time, seconds */
 export const winTime = writable(0);
 /** board celebration in progress (joy wave before the Victory screen) */
@@ -120,6 +126,9 @@ settingsOpen.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
 settingsOpen.subscribe((v) => {
   if (get(screen) === 'game') sendPlatformMessage(v ? 'level_paused' : 'level_resumed');
 });
+settingsOpen.subscribe((v) => {
+  if (v) clearHint(); // pausing dismisses any open hint (§5.1)
+});
 adActive.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
 platformPaused.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
 screen.subscribe((v) => (v === 'game' ? resumeTimer() : pauseTimer()));
@@ -128,7 +137,6 @@ let solverLog: SolverStep[] | null = null;
 /** Indices of the current level's unique-solution cats (commit target check). */
 let solutionSet = new Set<number>();
 let errorTimer: ReturnType<typeof setTimeout> | undefined;
-let hintTimer: ReturnType<typeof setTimeout> | undefined;
 let outcomeTimer: ReturnType<typeof setTimeout> | undefined;
 
 /**
@@ -260,7 +268,8 @@ export function loadLevel(): void {
 
   hearts.set(HEARTS_MAX);
   autocatUsed.set(false);
-  hintCells.set([]);
+  clearHint();
+  hintFreeUsed.set(false);
   errorCells.set([]);
   runErrors = 0;
   runXCells = new Set();
@@ -317,6 +326,7 @@ export function skipTutorial(): void {
 /** Tap: toggle X mark; tap on a cat removes it. */
 export function tapCell(i: number): void {
   if (inputLocked) return;
+  clearHint(); // any move dismisses the current hint (§5.1)
   if (get(givenCells).includes(i)) return; // pre-placed cats are locked (Р-36)
   cells.update((b) => {
     const next = b.slice();
@@ -332,6 +342,7 @@ export function tapCell(i: number): void {
 /** Long-press commit: place a cat; a rule-breaking commit costs a heart (GDD §2). */
 export function commitCat(i: number): void {
   if (inputLocked) return;
+  clearHint(); // any move dismisses the current hint (§5.1)
   const level = get(currentLevel);
   const board = get(cells);
 
@@ -518,40 +529,91 @@ export async function useAutocat(): Promise<void> {
   if (isSolved(level, get(cells))) void onWin();
 }
 
-/** Hint: highlight the next logical step from the solver log. */
-export async function useHint(): Promise<void> {
-  if (inputLocked) return;
-  const ok = await ads.showRewarded();
-  if (!ok) return;
-  const level = get(currentLevel);
-  const board = get(cells);
+/** Dismiss the current hint (banner + both highlight layers). */
+export function clearHint(): void {
+  hint.set(null);
+  hintCells.set([]);
+  hintCause.set([]);
+}
+
+function toIdx(level: LevelDef, cs: { row: number; col: number }[]): number[] {
+  return cs.map((c) => idx(level, c.row, c.col));
+}
+
+/** Player-facing explanation in the game's voice, by step subtype (Р-60). */
+function hintText(step: SolverStep): string {
+  switch (step.subtype) {
+    case 'single': {
+      const where =
+        step.groupKind === 'row'
+          ? 'this row'
+          : step.groupKind === 'column'
+            ? 'this column'
+            : 'this color';
+      return `Only one free cell left in ${where} — the cat goes here.`;
+    }
+    case 'shadow':
+      return `A cat here holds its row, column, color and touching cells — mark these with paws.`;
+    case 'confined':
+      return `This color fits only along one line — the rest of that line is out, mark it with paws.`;
+    case 'starve':
+      return `A cat here would leave another group with nowhere to go — so it's out, mark with paws.`;
+    default:
+      return step.type === 'place'
+        ? `The cat belongs here.`
+        : `These cells are out — mark them with paws.`;
+  }
+}
+
+/**
+ * Build the next teaching hint from the solver log (§5.2): the first step not yet
+ * reflected on the player's board becomes a place/eliminate hint with target + cause
+ * cells; if nothing matches, a soft hint points at a still-empty solution cell.
+ */
+function buildHint(level: LevelDef, board: CellState[]): HintView {
   const steps = solverLog ?? [];
-  let targets: number[] = [];
   for (const step of steps) {
     if (step.type === 'place') {
       const i = idx(level, step.cells[0].row, step.cells[0].col);
       if (board[i] !== 'cat') {
-        targets = [i];
-        break;
+        const cause = toIdx(level, step.cause ?? []).filter((c) => c !== i);
+        return { kind: 'place', text: hintText(step), targets: [i], cause };
       }
     } else {
       const missing = step.cells
         .map((c) => idx(level, c.row, c.col))
-        .filter((i) => board[i] === 'empty');
+        .filter((c) => board[c] === 'empty');
       if (missing.length) {
-        targets = missing;
-        break;
+        const cause = toIdx(level, step.cause ?? []).filter((c) => !missing.includes(c));
+        return { kind: 'eliminate', text: hintText(step), targets: missing, cause };
       }
     }
   }
-  // fallback: first solution cell without a cat
-  if (!targets.length) {
-    const t = level.solution.find((s) => board[idx(level, s.row, s.col)] !== 'cat');
-    if (t) targets = [idx(level, t.row, t.col)];
+  // fallback: point at the first solution cell still without a cat (never a silent no-op, KC-6)
+  const t = level.solution.find((s) => board[idx(level, s.row, s.col)] !== 'cat');
+  const targets = t ? [idx(level, t.row, t.col)] : [];
+  return { kind: 'soft', text: `A cat is hiding somewhere here.`, targets, cause: [] };
+}
+
+/**
+ * Hint (Р-56..Р-61): first hint of the level is free, later ones are rewarded;
+ * on platforms without rewarded ads all hints stay free. Shows a teaching banner
+ * under the board plus a target/cause highlight — never a silent no-op (KC-6).
+ */
+export async function useHint(): Promise<void> {
+  if (inputLocked) return;
+  const needAd = get(hintFreeUsed) && get(rewardedSupported);
+  if (needAd) {
+    const ok = await ads.showRewarded();
+    if (!ok) return; // the ads adapter surfaces its own "ad unavailable" notice
   }
+  const level = get(currentLevel);
+  const view = buildHint(level, get(cells));
+  hintFreeUsed.set(true);
   runHints++;
-  analytics.track('hint', { level: get(levelNumber) });
-  hintCells.set(targets);
-  clearTimeout(hintTimer);
-  hintTimer = setTimeout(() => hintCells.set([]), 2500);
+  analytics.track('hint', { level: get(levelNumber), kind: view.kind, free: !needAd });
+  hint.set(view);
+  hintCells.set(view.targets);
+  hintCause.set(view.cause);
+  // no auto-hide: the banner stays until the player clicks anywhere (dismissed from the UI, §5.1)
 }
