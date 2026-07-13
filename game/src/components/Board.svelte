@@ -218,7 +218,8 @@
     border: none;
     /* art skin v2 (kc_reference): white backing panel outlines the flat tiles */
     background: var(--surface);
-    box-shadow: var(--shadow);
+    /* soft drop shadow under the playing field */
+    box-shadow: 0 14px 30px rgba(125, 74, 73, 0.18), 0 4px 10px rgba(125, 74, 73, 0.10);
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
@@ -246,7 +247,6 @@
     left: 6%;
     width: 88%;
     height: 94%;
-    filter: drop-shadow(0 2.5px 2px rgba(70, 40, 15, 0.22));
   }
   .cell .xmark {
     /* paw mark = darker tint of the tile color, like the reference */

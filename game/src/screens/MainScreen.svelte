@@ -3,7 +3,7 @@
   import HowToPlay from '../components/HowToPlay.svelte';
   import LeaderboardOverlay from '../components/LeaderboardOverlay.svelte';
   import CollectionOverlay from '../components/CollectionOverlay.svelte';
-  import { levelNumber, streak, startGame, settingsOpen } from '../lib/game';
+  import { levelNumber, streak, startGame, settingsOpen, tutorialDone } from '../lib/game';
   import { leaderboardType, showNativePopup } from '../lib/leaderboard';
   import { mainHeroUrl, mainLeavesUrl, mainButterflyUrl, mainPawtrailUrl } from '../lib/skin';
 
@@ -25,15 +25,15 @@
 
   <div class="top-icons">
     <div class="left-icons">
+      <button class="squircle" aria-label="How to play" on:click={() => (showHow = true)}>
+        <svg><use href="#ic-q" /></svg>
+      </button>
       {#if $streak > 0}
         <div class="squircle streak-badge" aria-label="{$streak} level streak">
           <svg viewBox="0 0 24 28" class="flame"><use href="#ic-flame" /></svg>
           <b>{$streak}</b>
         </div>
       {/if}
-      <button class="squircle" aria-label="How to play" on:click={() => (showHow = true)}>
-        <svg><use href="#ic-q" /></svg>
-      </button>
     </div>
     <button class="squircle" aria-label="Settings" on:click={() => settingsOpen.set(true)}>
       <svg><use href="#ic-gear" /></svg>
@@ -52,7 +52,7 @@
 
     <button class="play-big" on:click={startGame}>
       Play
-      <small>Level {$levelNumber}</small>
+      {#if $tutorialDone}<small>Level {$levelNumber + 1}</small>{/if}
     </button>
 
     <div class="side-btn">

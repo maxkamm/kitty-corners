@@ -1,5 +1,5 @@
 /** User settings (GDD §5.3), persisted. Pattern marks render is post-MVP (§8) — toggle stored only. */
-import { writable, get } from 'svelte/store';
+import { writable } from 'svelte/store';
 import { storage } from './storage';
 import { setSoundEnabled } from './audio';
 import { setVibrationEnabled } from './haptics';
@@ -18,25 +18,9 @@ vibrationOn.subscribe((v) => {
 });
 patternMarksOn.subscribe((v) => storage.set('patternMarks', v));
 
-/** Theme: follows the system until the player flips the toggle, then sticks. */
-export type ThemePref = 'auto' | 'light' | 'dark';
-const mq =
-  typeof window !== 'undefined' && window.matchMedia
-    ? window.matchMedia('(prefers-color-scheme: dark)')
-    : null;
-
-export const themePref = writable<ThemePref>(storage.get('theme', 'auto'));
-themePref.subscribe((v) => storage.set('theme', v));
-
-/** Effective theme, resolved against the system preference. */
+/**
+ * Theme is locked to light for now — dark theme is temporarily disabled and its
+ * toggle is hidden from Settings. Device colour-scheme is intentionally ignored;
+ * the app always starts (and stays) light.
+ */
 export const darkMode = writable<boolean>(false);
-function recomputeDark(): void {
-  const p = get(themePref);
-  darkMode.set(p === 'auto' ? !!mq?.matches : p === 'dark');
-}
-themePref.subscribe(recomputeDark);
-mq?.addEventListener?.('change', recomputeDark);
-
-export function toggleDarkTheme(): void {
-  themePref.set(get(darkMode) ? 'light' : 'dark');
-}

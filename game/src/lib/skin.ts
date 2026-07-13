@@ -1,8 +1,8 @@
 /**
  * Art skin v2 (reference: kc_reference.png, cats: kc_kitty_list3.png).
  * Each region id gets its own cat breed; sprites cut from kc_kitty_list3.
- * `idle` on the board, `happy` during the victory celebration wave.
- * NOTE: happy poses are pending a separate sheet — same sprite for both, for now.
+ * `idle` on the board, `happy` (from kc_kitty_list3_happy) during the victory
+ * celebration wave.
  */
 import bsh from '../assets/k3_bsh.webp';
 import bengal from '../assets/k3_bengal.webp';
@@ -14,26 +14,34 @@ import mainecoon from '../assets/k3_mainecoon.webp';
 import scottishfold from '../assets/k3_scottishfold.webp';
 import ragdoll from '../assets/k3_ragdoll.webp';
 import sphynx from '../assets/k3_sphynx.webp';
+import bshHappy from '../assets/k3happy_bsh.webp';
+import bengalHappy from '../assets/k3happy_bengal.webp';
+import bombayHappy from '../assets/k3happy_bombay.webp';
+import persianHappy from '../assets/k3happy_persian.webp';
+import siameseHappy from '../assets/k3happy_siamese.webp';
+import calicoHappy from '../assets/k3happy_calico.webp';
+import mainecoonHappy from '../assets/k3happy_mainecoon.webp';
+import scottishfoldHappy from '../assets/k3happy_scottishfold.webp';
+import ragdollHappy from '../assets/k3happy_ragdoll.webp';
+import sphynxHappy from '../assets/k3happy_sphynx.webp';
 
 export interface CatSprite {
   idle: string;
   happy: string;
 }
 
-const same = (src: string): CatSprite => ({ idle: src, happy: src });
-
 /** Order tuned so early levels (few regions) get the most contrasting breeds. */
 const BREEDS: CatSprite[] = [
-  same(bsh), // gray
-  same(bengal), // orange spotted
-  same(bombay), // black
-  same(persian), // white fluffy
-  same(siamese), // cream, dark points
-  same(calico), // tri-color
-  same(mainecoon), // brown tabby
-  same(scottishfold), // beige, folded ears
-  same(ragdoll), // cream/brown, blue eyes
-  same(sphynx) // pink hairless
+  { idle: bsh, happy: bshHappy }, // gray
+  { idle: bengal, happy: bengalHappy }, // orange spotted
+  { idle: bombay, happy: bombayHappy }, // black
+  { idle: persian, happy: persianHappy }, // white fluffy
+  { idle: siamese, happy: siameseHappy }, // cream, dark points
+  { idle: calico, happy: calicoHappy }, // tri-color
+  { idle: mainecoon, happy: mainecoonHappy }, // brown tabby
+  { idle: scottishfold, happy: scottishfoldHappy }, // beige, folded ears
+  { idle: ragdoll, happy: ragdollHappy }, // cream/brown, blue eyes
+  { idle: sphynx, happy: sphynxHappy } // pink hairless
 ];
 
 /** Breed roster for the Collection overlay (order matches BREEDS). */

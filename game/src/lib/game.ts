@@ -411,7 +411,6 @@ async function onWin(): Promise<void> {
   // progress persists at the moment of victory (KC-3), not on «Next level»
   winLevel.set(get(levelNumber));
   levelNumber.update((n) => n + 1);
-  sfx.win();
   vibrate([20, 30, 20, 30, 40]);
   analytics.track('level_win', {
     level: get(winLevel),
@@ -422,15 +421,18 @@ async function onWin(): Promise<void> {
   });
   sendPlatformMessage('level_completed');
   if (reducedMotion()) {
+    sfx.win(); // joyful cue as the win screen appears
     screen.set('victory');
     queueGain(score, newTotal, true); // panel updates instantly, no flight
     return;
   }
   inputLocked = true;
   celebrating.set(true);
+  sfx.cheer(); // joyful cats bouncing on their cells
   outcomeTimer = setTimeout(() => {
     inputLocked = false;
     celebrating.set(false);
+    sfx.win(); // joyful cue as the win screen appears
     screen.set('victory');
     // Р-44: the "+points" flight starts ON the win screen, not during the celebration
     queueGain(score, newTotal);

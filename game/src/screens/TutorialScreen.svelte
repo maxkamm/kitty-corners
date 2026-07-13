@@ -108,7 +108,7 @@
       <div class="sheet">
         <h2>You're ready</h2>
         <p>That's all there is to it — one cat per color, row and column, never touching. Enjoy the puzzles.</p>
-        <button class="cta" on:click={finishTutorial}>Start Level 1</button>
+        <button class="cta" on:click={finishTutorial}>Next level</button>
       </div>
     </div>
   {/if}
@@ -163,7 +163,6 @@
   .next-btn {
     align-self: center;
     padding: 9px 26px;
-    font-size: 15px;
   }
   .board-wrap {
     display: flex;
@@ -206,7 +205,6 @@
   }
   .sheet .cta {
     padding: 13px;
-    font-size: 18px;
   }
   /* Desktop / landscape: keep the column narrow and centered. */
   @media (min-aspect-ratio: 1 / 1) {

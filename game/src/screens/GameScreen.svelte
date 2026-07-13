@@ -19,7 +19,6 @@
     celebrating,
     givenCells,
     introOrigin,
-    totalScore,
     elapsedSeconds,
     quitToMenu,
     useAutocat,
@@ -54,13 +53,8 @@
 
     <div class="hud-pill">
       <div class="hud-block hud-level">
-        <span class="hud-title">Level {$activeLevelNumber}</span>
+        <span class="hud-title">Level {$activeLevelNumber + 1}</span>
         <Hearts value={$hearts} size={22} />
-      </div>
-      <span class="hud-sep"></span>
-      <div class="hud-block">
-        <span class="hud-label">Score</span>
-        <span class="hud-value">{$totalScore}</span>
       </div>
       <span class="hud-sep"></span>
       <div class="hud-block">
