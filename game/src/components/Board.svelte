@@ -14,6 +14,8 @@
   export let cells: CellState[];
   export let errorCells: number[] = [];
   export let hintCells: number[] = [];
+  /** cells highlighted as the hint's reason (quiet secondary layer, §5.2) */
+  export let causeCells: number[] = [];
   /** cells glowing persistently while the tutorial waits for them */
   export let guideCells: number[] = [];
   /** input handlers — default to the real game; the tutorial passes its own */
@@ -162,6 +164,7 @@
         class="cell"
         class:error={errorCells.includes(i)}
         class:hint={hintCells.includes(i)}
+        class:cause={causeCells.includes(i)}
         class:guide={guideCells.includes(i)}
         role="gridcell"
         tabindex="-1"
@@ -404,6 +407,21 @@
     0%, 100% { opacity: 0.35; transform: scale(0.96); }
     50% { opacity: 1; transform: scale(1); }
   }
+  /* hint 'cause' layer (§5.2): quieter dashed outline explaining WHY the step holds */
+  .cell.cause::after {
+    content: '';
+    position: absolute;
+    inset: 4%;
+    border: 2px dashed var(--ink);
+    border-radius: 20%;
+    opacity: 0.45;
+    animation: cause-pulse 1.1s ease-in-out 3;
+    pointer-events: none;
+  }
+  @keyframes cause-pulse {
+    0%, 100% { opacity: 0.22; }
+    50% { opacity: 0.5; }
+  }
   /* tutorial: persistent gentle glow until the player acts on the cell */
   .cell.guide::after {
     content: '';
@@ -420,6 +438,7 @@
     .cell .cat.given-delay,
     .cell.error,
     .cell.hint::after,
+    .cell.cause::after,
     .pop i,
     .xmark.fade-out,
     .xmark.intro {

@@ -14,6 +14,9 @@
     hearts,
     errorCells,
     hintCells,
+    hintCause,
+    hint,
+    hintFreeUsed,
     settingsOpen,
     autocatUsed,
     celebrating,
@@ -22,7 +25,8 @@
     elapsedSeconds,
     quitToMenu,
     useAutocat,
-    useHint
+    useHint,
+    clearHint
   } from '../lib/game';
   import { rewardedSupported, adNotice } from '../lib/ads';
 
@@ -76,6 +80,7 @@
       cells={$cells}
       errorCells={$errorCells}
       hintCells={$hintCells}
+      causeCells={$hintCause}
       celebrate={$celebrating}
       givens={$givenCells}
       introOrigin={$introOrigin}
@@ -88,8 +93,8 @@
     {#if $leaderboardType === 'in_game'}
       <div class="lb-slot"><LeaderboardPanel /></div>
     {/if}
-    {#if $rewardedSupported}
-      <div class="game-bottom">
+    <div class="game-bottom">
+      {#if $rewardedSupported}
         <button
           class="round-btn"
           aria-label="Place one cat for me"
@@ -99,13 +104,30 @@
           <svg viewBox="0 0 24 24"><use href="#ic-cathead-line" /></svg>
           <span class="badge"><svg width="9" height="9" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg></span>
         </button>
-        <button class="round-btn" aria-label="Hint: next logical step" on:click={() => useHint()}>
-          <svg viewBox="0 0 24 24"><use href="#ic-bulb-line" /></svg>
+      {/if}
+      <!-- Hint always available: first is free, later ones rewarded (Р-56); badge appears once free is used -->
+      <button class="round-btn" aria-label="Hint: next logical step" on:click={() => useHint()}>
+        <svg viewBox="0 0 24 24"><use href="#ic-bulb-line" /></svg>
+        {#if $hintFreeUsed && $rewardedSupported}
           <span class="badge"><svg width="9" height="9" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg></span>
-        </button>
-      </div>
-    {/if}
+        {/if}
+      </button>
+    </div>
   </div>
+
+  {#if $hint}
+    <div class="hint-banner hint-{$hint.kind}" role="status">
+      <svg class="hb-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <use href={$hint.kind === 'place' ? '#ic-cathead-line' : '#ic-paw'} />
+      </svg>
+      <p>{$hint.text}</p>
+      <button class="hb-close" aria-label="Dismiss hint" on:click={() => clearHint()}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+  {/if}
 
   {#if $adNotice}
     <div class="ad-toast" role="status">{$adNotice}</div>
@@ -295,6 +317,72 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .ad-toast {
+      animation: none;
+    }
+  }
+  /* Teaching hint banner (§5.1): sits under the board, above the action buttons */
+  .hint-banner {
+    position: absolute;
+    left: 50%;
+    bottom: 92px;
+    transform: translateX(-50%);
+    width: min(92%, 460px);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    color: var(--ink);
+    border-radius: 16px;
+    border-left: 5px solid var(--accent);
+    padding: 11px 12px 11px 13px;
+    box-shadow: var(--shadow-pop, 0 8px 20px rgba(125, 74, 73, 0.22));
+    animation: hint-banner-in 0.24s ease both;
+    z-index: 5;
+  }
+  /* place hints read as a "go here" cue → cat-head accent; eliminate stays warm (paws) */
+  .hint-banner.hint-place {
+    border-left-color: var(--accent);
+  }
+  .hint-banner .hb-icon {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    color: var(--accent);
+  }
+  .hint-banner p {
+    margin: 0;
+    flex: 1;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 13.5px;
+    line-height: 1.3;
+  }
+  .hint-banner .hb-close {
+    flex: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    opacity: 0.55;
+    background: transparent;
+  }
+  .hint-banner .hb-close:active {
+    opacity: 1;
+  }
+  .hint-banner .hb-close svg {
+    width: 16px;
+    height: 16px;
+  }
+  @keyframes hint-banner-in {
+    from { opacity: 0; transform: translate(-50%, 8px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hint-banner {
       animation: none;
     }
   }
