@@ -5,7 +5,7 @@
   import CollectionOverlay from '../components/CollectionOverlay.svelte';
   import { levelNumber, streak, startGame, settingsOpen, tutorialDone } from '../lib/game';
   import { leaderboardType, showNativePopup } from '../lib/leaderboard';
-  import { mainHeroUrl, mainLeavesUrl, mainButterflyUrl, mainPawtrailUrl } from '../lib/skin';
+  import { mainHeroUrl, mainButterflyUrl, mainPawtrailUrl } from '../lib/skin';
 
   let showHow = false;
   let showBoard = false;
@@ -18,8 +18,7 @@
 </script>
 
 <section class="main">
-  <!-- decor cut from the reference: leaves (top-left), butterfly trail, paw trail -->
-  <img class="deco leaves" src={mainLeavesUrl} alt="" draggable="false" />
+  <!-- decor cut from the reference: butterfly trail, paw trail -->
   <img class="deco butterfly" src={mainButterflyUrl} alt="" draggable="false" />
   <img class="deco pawtrail" src={mainPawtrailUrl} alt="" draggable="false" />
 
@@ -96,11 +95,6 @@
     pointer-events: none;
     user-select: none;
     -webkit-user-select: none;
-  }
-  .leaves {
-    top: 0;
-    left: 0;
-    width: 53%;
   }
   .butterfly {
     top: 17%;
@@ -234,9 +228,6 @@
       max-width: 620px;
       padding: max(28px, env(safe-area-inset-top)) max(26px, env(safe-area-inset-right))
         max(40px, env(safe-area-inset-bottom)) max(26px, env(safe-area-inset-left));
-      /* let the corner decor bleed out of the narrow menu column; the stage
-         (overflow:hidden) still clips it to the play-area edge */
-      overflow: visible;
     }
     .hero {
       width: min(72%, 420px);
@@ -244,21 +235,6 @@
     .main-bottom {
       max-width: 520px;
       gap: 26px;
-    }
-    /* Anchor the leafy branch to the top-left of the play area (like on phones)
-       instead of the column edge, so it no longer cuts abruptly mid-branch.
-       The negative offset spans from the column left to the stage left edge. */
-    .leaves {
-      left: calc((620px - min(1240px, 100vw)) / 2);
-      width: min(46vw, 560px);
-      /* feather the far-left so the branch dissolves into the background instead
-         of a hard cut (and hides the soft artifact baked into the source art) */
-      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 40%);
-      mask-image: linear-gradient(to right, transparent 0%, #000 40%);
-    }
-    /* keep the paw trail within the menu column */
-    .pawtrail {
-      left: 0;
     }
   }
 </style>
