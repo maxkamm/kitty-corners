@@ -55,8 +55,8 @@
     display: flex;
     gap: 8px;
     justify-content: center;
-    /* align with the board footprint (kc_reference): same max width, centered */
-    max-width: 372px;
+    /* roughly align with the (now fluid) board footprint in portrait, centered */
+    max-width: 460px;
     margin: 0 auto;
     width: 100%;
   }

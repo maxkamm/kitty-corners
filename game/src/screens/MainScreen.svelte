@@ -220,4 +220,24 @@
     font-size: 15px;
     color: #e7f2bb;
   }
+  /* Landscape / desktop: keep the menu as a cohesive centered column instead of
+     stretching the phone layout across the full width; the full-bleed body
+     gradient fills the sides (cap-and-center). */
+  @media (min-aspect-ratio: 1 / 1) {
+    .main {
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 620px;
+      padding: 28px 26px 40px;
+    }
+    .hero {
+      width: min(72%, 420px);
+    }
+    .main-bottom {
+      max-width: 520px;
+      gap: 26px;
+    }
+  }
 </style>

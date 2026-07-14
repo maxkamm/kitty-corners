@@ -417,7 +417,11 @@
   @media (min-aspect-ratio: 1 / 1) {
     .game {
       display: grid;
-      grid-template-columns: minmax(150px, 1fr) minmax(280px, 440px) minmax(150px, 1fr);
+      /* No fr on the side columns: otherwise they would eat all the free space and
+         pin the board at its 320px min. Fixed-range tracks + centered grid let the
+         board grow to fill the middle column on large displays (KC-2). */
+      grid-template-columns: minmax(150px, 240px) minmax(320px, 640px) minmax(150px, 240px);
+      justify-content: center;
       grid-template-rows: auto 1fr;
       grid-template-areas:
         "top   top   top"
@@ -438,7 +442,7 @@
       grid-area: rules;
       justify-self: start;
       width: 100%;
-      max-width: 240px;
+      max-width: 260px;
     }
     .board-wrap {
       grid-area: board;
@@ -454,7 +458,7 @@
       justify-self: end;
       align-self: center;
       width: 100%;
-      max-width: 240px;
+      max-width: 260px;
     }
     .lb-slot {
       display: block;

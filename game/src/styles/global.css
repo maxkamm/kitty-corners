@@ -83,11 +83,16 @@ body {
 body {
   font-family: 'Nunito', sans-serif;
   color: var(--ink);
-  background: var(--bg);
+  /* Full-bleed backdrop: matches the in-screen gradient so that on wide/ultrawide
+     displays the letterboxed area beside the centered stage blends seamlessly
+     instead of showing a flat void (Playgama/portal desktop reqs). */
+  background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
+  background-attachment: fixed;
   overscroll-behavior: none;
 }
 .dark body {
-  background-image: none;
+  background: linear-gradient(180deg, #2a2433 0%, #241f2b 60%, #1e1a26 100%);
+  background-attachment: fixed;
 }
 #app {
   height: 100%;
