@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:playgama": "vite build --config vite.config.playgama.ts",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "npm run test:solver && npm run test:game && npm run test:tutorial && npm run test:score && npm run test:leaderboard",
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@tsconfig/svelte": "^5.0.4",
+    "javascript-obfuscator": "^5.4.7",
     "svelte": "^4.2.19",
     "svelte-check": "^3.8.6",
     "typescript": "^5.5.4",
