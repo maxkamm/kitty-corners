@@ -35,6 +35,9 @@ const store = new Map<string, string>();
 
 // ---- import module under test + collaborators (singletons) ----
 const game = await import('../src/lib/game.ts');
+// boot() wires up progress persistence after storage.hydrate(); do the same here
+// so the auto-save subscriptions are attached (they no longer run at import time).
+game.initGamePersistence();
 // These tests exercise the real level flow; mark the first-run tutorial as done
 // so startGame() goes straight to the level (the tutorial has its own tests).
 game.tutorialDone.set(true);

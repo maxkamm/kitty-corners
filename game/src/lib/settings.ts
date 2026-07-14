@@ -8,15 +8,27 @@ export const soundOn = writable<boolean>(storage.get('sound', true));
 export const vibrationOn = writable<boolean>(storage.get('vibration', false));
 export const patternMarksOn = writable<boolean>(storage.get('patternMarks', false));
 
-soundOn.subscribe((v) => {
-  storage.set('sound', v);
-  setSoundEnabled(v);
-});
-vibrationOn.subscribe((v) => {
-  storage.set('vibration', v);
-  setVibrationEnabled(v);
-});
-patternMarksOn.subscribe((v) => storage.set('patternMarks', v));
+/**
+ * Wire up settings persistence. Called once from boot() AFTER storage.hydrate()
+ * resolves, for the same reason as initGamePersistence(): re-apply the hydrated
+ * values and only then attach the auto-save subscriptions, so the initial
+ * defaults don't overwrite saved settings before hydrate() runs.
+ */
+export function initSettingsPersistence(): void {
+  soundOn.set(storage.get('sound', true));
+  vibrationOn.set(storage.get('vibration', false));
+  patternMarksOn.set(storage.get('patternMarks', false));
+
+  soundOn.subscribe((v) => {
+    storage.set('sound', v);
+    setSoundEnabled(v);
+  });
+  vibrationOn.subscribe((v) => {
+    storage.set('vibration', v);
+    setVibrationEnabled(v);
+  });
+  patternMarksOn.subscribe((v) => storage.set('patternMarks', v));
+}
 
 /**
  * Theme is locked to light for now — dark theme is temporarily disabled and its

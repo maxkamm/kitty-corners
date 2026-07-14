@@ -14,7 +14,8 @@
   "device": {
     "useBuiltInOrientationPopup": true,
     "supportedOrientations": [
-      "portrait"
+      "portrait",
+      "landscape"
     ]
   },
   "leaderboards": [

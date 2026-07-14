@@ -26,6 +26,16 @@ async function boot() {
   initAds(); // read ad capabilities now that Bridge is initialized
   initLeaderboard(); // read leaderboard flow (Р-43)
   await storage.hydrate();
+  // Wire up persistence only now that the cache is hydrated, so the stores'
+  // auto-save subscriptions don't overwrite saved progress/settings with their
+  // initial default values (single-file bundles can't defer store init past
+  // this point via dynamic import).
+  const [{ initGamePersistence }, { initSettingsPersistence }] = await Promise.all([
+    import('./lib/game'),
+    import('./lib/settings')
+  ]);
+  initGamePersistence();
+  initSettingsPersistence();
   const { default: App } = await import('./App.svelte');
   const app = new App({ target: document.getElementById('app')! });
   // First playable frame is mounted → announce readiness and wire host handlers.

@@ -36,11 +36,29 @@ export const tutorialDone = writable<boolean>(storage.get('tutorialDone', false)
 /** Cumulative score across all won levels (Р-42) — the future leaderboard value. */
 export const totalScore = writable<number>(storage.get('totalScore', 0));
 
-levelNumber.subscribe((v) => storage.set('level', v));
-streak.subscribe((v) => storage.set('streak', v));
-bestStreak.subscribe((v) => storage.set('bestStreak', v));
-tutorialDone.subscribe((v) => storage.set('tutorialDone', v));
-totalScore.subscribe((v) => storage.set('totalScore', v));
+/**
+ * Wire up progress persistence. Called once from boot() AFTER storage.hydrate()
+ * resolves. The stores above are read at module-eval time, but in a single-file
+ * bundle that happens before the async hydrate() populates the cache (the
+ * dynamic import of App no longer defers evaluation, and bridge storage is
+ * async). So we (1) re-apply the now-hydrated values, then (2) attach the
+ * auto-save subscriptions — attaching them only now means the initial default
+ * values never get written back over the saved data. Without this, progress is
+ * wiped on every reload.
+ */
+export function initGamePersistence(): void {
+  levelNumber.set(storage.get('level', 1));
+  streak.set(storage.get('streak', 0));
+  bestStreak.set(storage.get('bestStreak', 0));
+  tutorialDone.set(storage.get('tutorialDone', false));
+  totalScore.set(storage.get('totalScore', 0));
+
+  levelNumber.subscribe((v) => storage.set('level', v));
+  streak.subscribe((v) => storage.set('streak', v));
+  bestStreak.subscribe((v) => storage.set('bestStreak', v));
+  tutorialDone.subscribe((v) => storage.set('tutorialDone', v));
+  totalScore.subscribe((v) => storage.set('totalScore', v));
+}
 
 // ---------- session ----------
 export const screen = writable<Screen>('main');
