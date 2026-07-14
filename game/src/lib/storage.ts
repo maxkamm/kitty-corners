@@ -23,7 +23,7 @@ export interface StorageAdapter {
 const PREFIX = 'kc.';
 
 /** Every persisted key the game uses (game.ts progress + settings.ts). */
-const KEYS = ['level', 'streak', 'bestStreak', 'sound', 'vibration', 'patternMarks', 'tutorialDone', 'totalScore', 'theme'] as const;
+const KEYS = ['level', 'streak', 'bestStreak', 'sound', 'music', 'vibration', 'patternMarks', 'tutorialDone', 'totalScore', 'theme'] as const;
 
 class BridgeStorageAdapter implements StorageAdapter {
   /** Raw JSON strings keyed by unprefixed key — mirrors localStorage semantics. */

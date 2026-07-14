@@ -2,7 +2,7 @@
   /** Settings overlay = pause (GDD §5.3). Board underneath is blurred by App via .blurred. */
   import HowToPlay from '../components/HowToPlay.svelte';
   import { settingsOpen, restartFromSettings, quitToMenu, screen } from '../lib/game';
-  import { soundOn, vibrationOn } from '../lib/settings';
+  import { soundOn, musicOn, vibrationOn } from '../lib/settings';
 
   let confirmRestart = false;
   let showHow = false;
@@ -36,6 +36,9 @@
       <button class="set-row center" on:click={() => (showHow = true)}>How to play</button>
       <button class="set-row" on:click={() => soundOn.update((v) => !v)}>
         Sound <span class="toggle" class:off={!$soundOn} role="switch" aria-checked={$soundOn}></span>
+      </button>
+      <button class="set-row" on:click={() => musicOn.update((v) => !v)}>
+        Music <span class="toggle" class:off={!$musicOn} role="switch" aria-checked={$musicOn}></span>
       </button>
       <button class="set-row" on:click={() => vibrationOn.update((v) => !v)}>
         Vibration <span class="toggle" class:off={!$vibrationOn} role="switch" aria-checked={$vibrationOn}></span>

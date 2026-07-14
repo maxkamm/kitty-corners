@@ -6,12 +6,22 @@
   import SettingsOverlay from './screens/SettingsOverlay.svelte';
   import DefeatScreen from './screens/DefeatScreen.svelte';
   import VictoryScreen from './screens/VictoryScreen.svelte';
+  import { onMount } from 'svelte';
   import { screen, settingsOpen } from './lib/game';
   import { darkMode } from './lib/settings'; // also initializes persisted settings side-effects
+  import { startMusic } from './lib/audio';
 
   // Theme: token sets (:root / .dark). Follows the system until the player
   // flips the toggle in Settings (lib/settings.ts resolves the preference).
   darkMode.subscribe((dark) => document.documentElement.classList.toggle('dark', dark));
+
+  // Browsers block audio until a user gesture — start the music on the first tap
+  // (it's a no-op if the Music setting is off).
+  onMount(() => {
+    const kick = (): void => startMusic();
+    window.addEventListener('pointerdown', kick, { once: true });
+    return () => window.removeEventListener('pointerdown', kick);
+  });
 </script>
 
 <Icons />
