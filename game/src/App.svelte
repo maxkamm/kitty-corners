@@ -45,14 +45,17 @@
     height: 100dvh;
     max-width: 480px;
     margin: 0 auto;
-    background: var(--bg);
+    /* transparent: the full-bleed body gradient shows through, so the centered
+       stage never reads as a floating card on wide screens. */
+    background: transparent;
     overflow: hidden;
     transition: background 0.3s;
   }
-  /* Desktop / landscape: let the game use the horizontal space (Playgama desktop reqs). */
+  /* Desktop / landscape: let the game use the horizontal space (Playgama desktop reqs).
+     Cap-and-center: above this width the body gradient fills the sides (full-bleed). */
   @media (min-aspect-ratio: 1 / 1) {
     .stage {
-      max-width: min(1100px, 100%);
+      max-width: min(1240px, 100%);
     }
   }
   .screen-host {

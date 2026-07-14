@@ -163,7 +163,9 @@
     inset: 0;
     display: flex;
     flex-direction: column;
-    padding: 16px 14px 18px;
+    /* base spacing, expanded to clear device safe areas (notch / rounded corners) */
+    padding: max(16px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+      max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
     gap: 12px;
     background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
   }
@@ -417,7 +419,11 @@
   @media (min-aspect-ratio: 1 / 1) {
     .game {
       display: grid;
-      grid-template-columns: minmax(150px, 1fr) minmax(280px, 440px) minmax(150px, 1fr);
+      /* No fr on the side columns: otherwise they would eat all the free space and
+         pin the board at its 320px min. Fixed-range tracks + centered grid let the
+         board grow to fill the middle column on large displays (KC-2). */
+      grid-template-columns: minmax(150px, 240px) minmax(320px, 640px) minmax(150px, 240px);
+      justify-content: center;
       grid-template-rows: auto 1fr;
       grid-template-areas:
         "top   top   top"
@@ -425,7 +431,8 @@
       align-items: center;
       column-gap: 24px;
       row-gap: 10px;
-      padding: 18px 28px 22px;
+      padding: max(18px, env(safe-area-inset-top)) max(28px, env(safe-area-inset-right))
+        max(22px, env(safe-area-inset-bottom)) max(28px, env(safe-area-inset-left));
     }
     .game-top {
       grid-area: top;
@@ -438,7 +445,7 @@
       grid-area: rules;
       justify-self: start;
       width: 100%;
-      max-width: 240px;
+      max-width: 260px;
     }
     .board-wrap {
       grid-area: board;
@@ -454,7 +461,7 @@
       justify-self: end;
       align-self: center;
       width: 100%;
-      max-width: 240px;
+      max-width: 260px;
     }
     .lb-slot {
       display: block;

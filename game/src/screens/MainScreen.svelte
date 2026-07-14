@@ -5,7 +5,7 @@
   import CollectionOverlay from '../components/CollectionOverlay.svelte';
   import { levelNumber, streak, startGame, settingsOpen, tutorialDone } from '../lib/game';
   import { leaderboardType, showNativePopup } from '../lib/leaderboard';
-  import { mainHeroUrl, mainLeavesUrl, mainButterflyUrl, mainPawtrailUrl } from '../lib/skin';
+  import { mainHeroUrl, mainButterflyUrl, mainPawtrailUrl } from '../lib/skin';
 
   let showHow = false;
   let showBoard = false;
@@ -18,8 +18,7 @@
 </script>
 
 <section class="main">
-  <!-- decor cut from the reference: leaves (top-left), butterfly trail, paw trail -->
-  <img class="deco leaves" src={mainLeavesUrl} alt="" draggable="false" />
+  <!-- decor cut from the reference: butterfly trail, paw trail -->
   <img class="deco butterfly" src={mainButterflyUrl} alt="" draggable="false" />
   <img class="deco pawtrail" src={mainPawtrailUrl} alt="" draggable="false" />
 
@@ -82,7 +81,9 @@
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: 24px 22px 34px;
+    /* base spacing, expanded to clear device safe areas (notch / rounded corners) */
+    padding: max(24px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right))
+      max(34px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left));
     background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
     overflow: hidden;
   }
@@ -94,11 +95,6 @@
     pointer-events: none;
     user-select: none;
     -webkit-user-select: none;
-  }
-  .leaves {
-    top: 0;
-    left: 0;
-    width: 53%;
   }
   .butterfly {
     top: 17%;
@@ -219,5 +215,26 @@
     font-weight: 800;
     font-size: 15px;
     color: #e7f2bb;
+  }
+  /* Landscape / desktop: keep the menu as a cohesive centered column instead of
+     stretching the phone layout across the full width; the full-bleed body
+     gradient fills the sides (cap-and-center). */
+  @media (min-aspect-ratio: 1 / 1) {
+    .main {
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 620px;
+      padding: max(28px, env(safe-area-inset-top)) max(26px, env(safe-area-inset-right))
+        max(40px, env(safe-area-inset-bottom)) max(26px, env(safe-area-inset-left));
+    }
+    .hero {
+      width: min(72%, 420px);
+    }
+    .main-bottom {
+      max-width: 520px;
+      gap: 26px;
+    }
   }
 </style>

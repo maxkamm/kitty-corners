@@ -30,8 +30,12 @@
   /** available height from the parent, px (KC-1: board must fit short/landscape viewports) */
   export let maxPx = 0;
 
-  /** KC-2: larger boards may grow beyond 372px so cells reach 40px+ on wide screens */
-  $: basePx = n >= 9 ? n * 44 : 372;
+  /** Desktop-adaptive sizing (KC-2): the board is the largest square that fits both
+   *  its column (width, via `width:min(...,100%)`) and the available height (`maxPx`).
+   *  We no longer hard-cap the board at 372px — instead we cap the *cell* size so the
+   *  field scales up on large displays without cats becoming oversized on 4K. */
+  const MAX_CELL_PX = 80;
+  $: basePx = n * MAX_CELL_PX;
   $: sizeLimit = maxPx > 0 ? Math.min(basePx, maxPx) : basePx;
 
   /* art skin v2 (kc_reference): flat tiles on the page bg, gap ≈3.7% of a cell,
