@@ -163,7 +163,9 @@
     inset: 0;
     display: flex;
     flex-direction: column;
-    padding: 16px 14px 18px;
+    /* base spacing, expanded to clear device safe areas (notch / rounded corners) */
+    padding: max(16px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+      max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
     gap: 12px;
     background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
   }
@@ -429,7 +431,8 @@
       align-items: center;
       column-gap: 24px;
       row-gap: 10px;
-      padding: 18px 28px 22px;
+      padding: max(18px, env(safe-area-inset-top)) max(28px, env(safe-area-inset-right))
+        max(22px, env(safe-area-inset-bottom)) max(28px, env(safe-area-inset-left));
     }
     .game-top {
       grid-area: top;

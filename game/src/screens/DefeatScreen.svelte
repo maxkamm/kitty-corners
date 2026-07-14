@@ -45,7 +45,9 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 32px 26px;
+    /* base spacing, expanded to clear device safe areas (notch / rounded corners) */
+    padding: max(32px, env(safe-area-inset-top)) max(26px, env(safe-area-inset-right))
+      max(32px, env(safe-area-inset-bottom)) max(26px, env(safe-area-inset-left));
     gap: 14px;
     text-align: center;
     background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);

@@ -111,7 +111,9 @@
     /* safe center: centers when it fits, aligns to top (no clipping) when the
        stack is taller than the screen; scrolls as a last resort */
     justify-content: safe center;
-    padding: 24px 26px;
+    /* base spacing, expanded to clear device safe areas (notch / rounded corners) */
+    padding: max(24px, env(safe-area-inset-top)) max(26px, env(safe-area-inset-right))
+      max(24px, env(safe-area-inset-bottom)) max(26px, env(safe-area-inset-left));
     gap: 11px;
     text-align: center;
     overflow-x: hidden;
@@ -426,7 +428,7 @@
     .lb-side {
       display: block;
       position: absolute;
-      right: 28px;
+      right: max(28px, env(safe-area-inset-right));
       top: 50%;
       transform: translateY(-50%);
       width: 240px;

@@ -82,7 +82,9 @@
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: 24px 22px 34px;
+    /* base spacing, expanded to clear device safe areas (notch / rounded corners) */
+    padding: max(24px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right))
+      max(34px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left));
     background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
     overflow: hidden;
   }
@@ -230,7 +232,8 @@
       transform: translateX(-50%);
       width: 100%;
       max-width: 620px;
-      padding: 28px 26px 40px;
+      padding: max(28px, env(safe-area-inset-top)) max(26px, env(safe-area-inset-right))
+        max(40px, env(safe-area-inset-bottom)) max(26px, env(safe-area-inset-left));
     }
     .hero {
       width: min(72%, 420px);
