@@ -27,7 +27,8 @@
           <rect {x} {y} width="10" height="10" rx="3" fill="var(--surface-2)" />
         {/each}
       {/each}
-      {#each [[1, 1], [25, 13], [13, 25]] as [x, y]}
+      <!-- paws mark the rest of the cat's row (top) and column (middle) -->
+      {#each [[1, 1], [25, 1], [13, 13], [13, 25]] as [x, y]}
         <use href="#ic-paw" x={x + 2} y={y + 2} width="6" height="6" class="mini-paw" />
       {/each}
       <image href={chipCat} x="12" y="0" width="12" height="12" />
