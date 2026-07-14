@@ -234,6 +234,9 @@
       max-width: 620px;
       padding: max(28px, env(safe-area-inset-top)) max(26px, env(safe-area-inset-right))
         max(40px, env(safe-area-inset-bottom)) max(26px, env(safe-area-inset-left));
+      /* let the corner decor bleed out of the narrow menu column; the stage
+         (overflow:hidden) still clips it to the play-area edge */
+      overflow: visible;
     }
     .hero {
       width: min(72%, 420px);
@@ -241,6 +244,21 @@
     .main-bottom {
       max-width: 520px;
       gap: 26px;
+    }
+    /* Anchor the leafy branch to the top-left of the play area (like on phones)
+       instead of the column edge, so it no longer cuts abruptly mid-branch.
+       The negative offset spans from the column left to the stage left edge. */
+    .leaves {
+      left: calc((620px - min(1240px, 100vw)) / 2);
+      width: min(46vw, 560px);
+      /* feather the far-left so the branch dissolves into the background instead
+         of a hard cut (and hides the soft artifact baked into the source art) */
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 40%);
+      mask-image: linear-gradient(to right, transparent 0%, #000 40%);
+    }
+    /* keep the paw trail within the menu column */
+    .pawtrail {
+      left: 0;
     }
   }
 </style>
