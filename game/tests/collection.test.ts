@@ -35,25 +35,26 @@ const C = await import('../src/lib/collection.ts');
 // ============================================================
 {
   const empty = new Set<string>();
-  const bombay = C.breedById('bombay')!;
-  const bengal = C.breedById('bengal')!; // rare, threshold 20
-  const russianblue = C.breedById('russianblue')!; // rare, hasArt: false
+  const common = C.breedById('tuxedo')!; // common, threshold 1
+  const rare = C.breedById('abyssinian')!; // rare, threshold 20
+  const legendary = C.breedById('savannah')!; // legendary, threshold 60
 
-  check('common drops from level 1', C.dropWeight(bombay, 1, empty) > 0);
-  eq('rare gated below threshold', C.dropWeight(bengal, 10, empty), 0);
-  check('rare drops at its threshold', C.dropWeight(bengal, 20, empty) > 0);
-  eq('art-less breed never drops', C.dropWeight(russianblue, 99, empty), 0);
+  check('common drops from level 1', C.dropWeight(common, 1, empty) > 0);
+  eq('rare gated below threshold', C.dropWeight(rare, 10, empty), 0);
+  check('rare drops at its threshold', C.dropWeight(rare, 20, empty) > 0);
+  eq('legendary gated well below its threshold', C.dropWeight(legendary, 30, empty), 0);
+  check('legendary drops at its threshold', C.dropWeight(legendary, 60, empty) > 0);
 }
 
 // ============================================================
 // 2) Collection-aware bias favours undiscovered breeds (×2.5)
 // ============================================================
 {
-  const bombay = C.breedById('bombay')!;
-  const tabby = C.breedById('tabby')!;
-  const known = new Set<string>(['bombay']);
-  const wKnown = C.dropWeight(bombay, 1, known); // discovered → ×1
-  const wNew = C.dropWeight(tabby, 1, known); // undiscovered → ×2.5
+  const c1 = C.breedById('tuxedo')!;
+  const c2 = C.breedById('dilutecalico')!;
+  const known = new Set<string>(['tuxedo']);
+  const wKnown = C.dropWeight(c1, 1, known); // discovered → ×1
+  const wNew = C.dropWeight(c2, 1, known); // undiscovered → ×2.5
   eq('discovered common weight', wKnown, 100);
   eq('undiscovered common weight (×2.5)', wNew, 250);
 }
@@ -130,19 +131,19 @@ const C = await import('../src/lib/collection.ts');
 // ============================================================
 {
   C.initCollectionPersistence();
-  eq('discover: first time is new', C.discoverBreed('bombay', 3), true);
-  eq('discover: second time is not new', C.discoverBreed('bombay', 5), false);
-  check('isDiscovered after discovery', C.isDiscovered('bombay'));
+  eq('discover: first time is new', C.discoverBreed('tuxedo', 3), true);
+  eq('discover: second time is not new', C.discoverBreed('tuxedo', 5), false);
+  check('isDiscovered after discovery', C.isDiscovered('tuxedo'));
   eq('discovered count', C.discoveredCount(), 1);
 
-  const rec = get(C.collection).discovered['bombay'];
+  const rec = get(C.collection).discovered['tuxedo'];
   eq('count increments on re-encounter', rec.count, 2);
   eq('firstLevel kept from first discovery', rec.firstLevel, 3);
 
   check('collection persisted to storage', !!store.get('kc.collection'));
   check(
     'persisted payload contains the breed',
-    (store.get('kc.collection') ?? '').includes('bombay')
+    (store.get('kc.collection') ?? '').includes('tuxedo')
   );
 }
 
@@ -150,10 +151,10 @@ const C = await import('../src/lib/collection.ts');
 // 7) NEW pip: unseen until marked seen (§10.6)
 // ============================================================
 {
-  C.discoverBreed('tabby', 2);
-  check('freshly discovered breed is unseen', C.isUnseen('tabby'));
+  C.discoverBreed('dilutecalico', 2);
+  check('freshly discovered breed is unseen', C.isUnseen('dilutecalico'));
   C.markAllSeen();
-  check('markAllSeen clears the unseen flag', !C.isUnseen('tabby'));
+  check('markAllSeen clears the unseen flag', !C.isUnseen('dilutecalico'));
 }
 
 // ---- report ----

@@ -1,63 +1,101 @@
 /**
- * Cat collection — sprite URLs (GDD §10, §10.8). UI-only: this module imports
- * `.webp` assets and must NOT be pulled into `game.ts`/the Node test harness
- * (which only understands `.ts`/`.json`). Breed *logic* lives in `collection.ts`.
- *
- * idle = board pose, happy = reveal / victory pose. The 10 art-skin-v2 breeds use
- * the k3 idle + k3happy pairs; Tabby/White/Tuxedo/Cream use the k_* idle/happy
- * pairs. Art-less breeds (Р-53) have no entry → the UI shows a silhouette.
+ * Cat collection — sprite URLs (GDD §10.8). UI-only: imports `.webp` assets, so it
+ * must NOT be pulled into `game.ts`/the Node test harness. Breed logic lives in
+ * `collection.ts`. Art: kc_kitty_list4 (idle) + kc_kitty_list4_happy (happy),
+ * sliced to k4_<id> / k4happy_<id>.
  */
 import type { CatSprite } from './skin';
 
-import k3_bombay from '../assets/k3_bombay.webp';
-import k3_bsh from '../assets/k3_bsh.webp';
-import k3_bengal from '../assets/k3_bengal.webp';
-import k3_persian from '../assets/k3_persian.webp';
-import k3_siamese from '../assets/k3_siamese.webp';
-import k3_calico from '../assets/k3_calico.webp';
-import k3_mainecoon from '../assets/k3_mainecoon.webp';
-import k3_scottishfold from '../assets/k3_scottishfold.webp';
-import k3_ragdoll from '../assets/k3_ragdoll.webp';
-import k3_sphynx from '../assets/k3_sphynx.webp';
+import idle_tuxedo from '../assets/k4_tuxedo.webp';
+import idle_dilutecalico from '../assets/k4_dilutecalico.webp';
+import idle_tortoiseshell from '../assets/k4_tortoiseshell.webp';
+import idle_oddeyedwhite from '../assets/k4_oddeyedwhite.webp';
+import idle_americanshorthair from '../assets/k4_americanshorthair.webp';
+import idle_mainecoonred from '../assets/k4_mainecoonred.webp';
+import idle_munchkin from '../assets/k4_munchkin.webp';
+import idle_japanesebobtail from '../assets/k4_japanesebobtail.webp';
+import idle_russianblue from '../assets/k4_russianblue.webp';
+import idle_burmese from '../assets/k4_burmese.webp';
+import idle_himalayan from '../assets/k4_himalayan.webp';
+import idle_ragdoll from '../assets/k4_ragdoll.webp';
+import idle_chartreux from '../assets/k4_chartreux.webp';
+import idle_exoticshorthair from '../assets/k4_exoticshorthair.webp';
+import idle_turkishangora from '../assets/k4_turkishangora.webp';
+import idle_abyssinian from '../assets/k4_abyssinian.webp';
+import idle_tonkinese from '../assets/k4_tonkinese.webp';
+import idle_orientalshorthair from '../assets/k4_orientalshorthair.webp';
+import idle_birman from '../assets/k4_birman.webp';
+import idle_norwegian from '../assets/k4_norwegian.webp';
+import idle_siberian from '../assets/k4_siberian.webp';
+import idle_singapura from '../assets/k4_singapura.webp';
+import idle_devonrex from '../assets/k4_devonrex.webp';
+import idle_laperm from '../assets/k4_laperm.webp';
+import idle_selkirkrex from '../assets/k4_selkirkrex.webp';
+import idle_savannah from '../assets/k4_savannah.webp';
+import idle_egyptianmau from '../assets/k4_egyptianmau.webp';
+import idle_vankedisi from '../assets/k4_vankedisi.webp';
 
-import k3h_bombay from '../assets/k3happy_bombay.webp';
-import k3h_bsh from '../assets/k3happy_bsh.webp';
-import k3h_bengal from '../assets/k3happy_bengal.webp';
-import k3h_persian from '../assets/k3happy_persian.webp';
-import k3h_siamese from '../assets/k3happy_siamese.webp';
-import k3h_calico from '../assets/k3happy_calico.webp';
-import k3h_mainecoon from '../assets/k3happy_mainecoon.webp';
-import k3h_scottishfold from '../assets/k3happy_scottishfold.webp';
-import k3h_ragdoll from '../assets/k3happy_ragdoll.webp';
-import k3h_sphynx from '../assets/k3happy_sphynx.webp';
-
-import k_tabby_idle from '../assets/k_tabby_idle.webp';
-import k_tabby_happy from '../assets/k_tabby_happy.webp';
-import k_white_idle from '../assets/k_white_idle.webp';
-import k_white_happy from '../assets/k_white_happy.webp';
-import k_tuxedo_idle from '../assets/k_tuxedo_idle.webp';
-import k_tuxedo_happy from '../assets/k_tuxedo_happy.webp';
-import k_cream_idle from '../assets/k_cream_idle.webp';
-import k_cream_happy from '../assets/k_cream_happy.webp';
+import happy_tuxedo from '../assets/k4happy_tuxedo.webp';
+import happy_dilutecalico from '../assets/k4happy_dilutecalico.webp';
+import happy_tortoiseshell from '../assets/k4happy_tortoiseshell.webp';
+import happy_oddeyedwhite from '../assets/k4happy_oddeyedwhite.webp';
+import happy_americanshorthair from '../assets/k4happy_americanshorthair.webp';
+import happy_mainecoonred from '../assets/k4happy_mainecoonred.webp';
+import happy_munchkin from '../assets/k4happy_munchkin.webp';
+import happy_japanesebobtail from '../assets/k4happy_japanesebobtail.webp';
+import happy_russianblue from '../assets/k4happy_russianblue.webp';
+import happy_burmese from '../assets/k4happy_burmese.webp';
+import happy_himalayan from '../assets/k4happy_himalayan.webp';
+import happy_ragdoll from '../assets/k4happy_ragdoll.webp';
+import happy_chartreux from '../assets/k4happy_chartreux.webp';
+import happy_exoticshorthair from '../assets/k4happy_exoticshorthair.webp';
+import happy_turkishangora from '../assets/k4happy_turkishangora.webp';
+import happy_abyssinian from '../assets/k4happy_abyssinian.webp';
+import happy_tonkinese from '../assets/k4happy_tonkinese.webp';
+import happy_orientalshorthair from '../assets/k4happy_orientalshorthair.webp';
+import happy_birman from '../assets/k4happy_birman.webp';
+import happy_norwegian from '../assets/k4happy_norwegian.webp';
+import happy_siberian from '../assets/k4happy_siberian.webp';
+import happy_singapura from '../assets/k4happy_singapura.webp';
+import happy_devonrex from '../assets/k4happy_devonrex.webp';
+import happy_laperm from '../assets/k4happy_laperm.webp';
+import happy_selkirkrex from '../assets/k4happy_selkirkrex.webp';
+import happy_savannah from '../assets/k4happy_savannah.webp';
+import happy_egyptianmau from '../assets/k4happy_egyptianmau.webp';
+import happy_vankedisi from '../assets/k4happy_vankedisi.webp';
 
 const SPRITES: Record<string, CatSprite> = {
-  bombay: { idle: k3_bombay, happy: k3h_bombay },
-  bsh: { idle: k3_bsh, happy: k3h_bsh },
-  bengal: { idle: k3_bengal, happy: k3h_bengal },
-  persian: { idle: k3_persian, happy: k3h_persian },
-  siamese: { idle: k3_siamese, happy: k3h_siamese },
-  calico: { idle: k3_calico, happy: k3h_calico },
-  mainecoon: { idle: k3_mainecoon, happy: k3h_mainecoon },
-  scottishfold: { idle: k3_scottishfold, happy: k3h_scottishfold },
-  ragdoll: { idle: k3_ragdoll, happy: k3h_ragdoll },
-  sphynx: { idle: k3_sphynx, happy: k3h_sphynx },
-  tabby: { idle: k_tabby_idle, happy: k_tabby_happy },
-  white: { idle: k_white_idle, happy: k_white_happy },
-  tuxedo: { idle: k_tuxedo_idle, happy: k_tuxedo_happy },
-  cream: { idle: k_cream_idle, happy: k_cream_happy }
+  tuxedo: { idle: idle_tuxedo, happy: happy_tuxedo },
+  dilutecalico: { idle: idle_dilutecalico, happy: happy_dilutecalico },
+  tortoiseshell: { idle: idle_tortoiseshell, happy: happy_tortoiseshell },
+  oddeyedwhite: { idle: idle_oddeyedwhite, happy: happy_oddeyedwhite },
+  americanshorthair: { idle: idle_americanshorthair, happy: happy_americanshorthair },
+  mainecoonred: { idle: idle_mainecoonred, happy: happy_mainecoonred },
+  munchkin: { idle: idle_munchkin, happy: happy_munchkin },
+  japanesebobtail: { idle: idle_japanesebobtail, happy: happy_japanesebobtail },
+  russianblue: { idle: idle_russianblue, happy: happy_russianblue },
+  burmese: { idle: idle_burmese, happy: happy_burmese },
+  himalayan: { idle: idle_himalayan, happy: happy_himalayan },
+  ragdoll: { idle: idle_ragdoll, happy: happy_ragdoll },
+  chartreux: { idle: idle_chartreux, happy: happy_chartreux },
+  exoticshorthair: { idle: idle_exoticshorthair, happy: happy_exoticshorthair },
+  turkishangora: { idle: idle_turkishangora, happy: happy_turkishangora },
+  abyssinian: { idle: idle_abyssinian, happy: happy_abyssinian },
+  tonkinese: { idle: idle_tonkinese, happy: happy_tonkinese },
+  orientalshorthair: { idle: idle_orientalshorthair, happy: happy_orientalshorthair },
+  birman: { idle: idle_birman, happy: happy_birman },
+  norwegian: { idle: idle_norwegian, happy: happy_norwegian },
+  siberian: { idle: idle_siberian, happy: happy_siberian },
+  singapura: { idle: idle_singapura, happy: happy_singapura },
+  devonrex: { idle: idle_devonrex, happy: happy_devonrex },
+  laperm: { idle: idle_laperm, happy: happy_laperm },
+  selkirkrex: { idle: idle_selkirkrex, happy: happy_selkirkrex },
+  savannah: { idle: idle_savannah, happy: happy_savannah },
+  egyptianmau: { idle: idle_egyptianmau, happy: happy_egyptianmau },
+  vankedisi: { idle: idle_vankedisi, happy: happy_vankedisi },
 };
 
-/** Sprite pair for a breed id, or null when its art is not ready yet (Р-53). */
+/** Sprite pair for a breed id, or null if unknown. */
 export function spriteForBreed(id: string): CatSprite | null {
   return SPRITES[id] ?? null;
 }

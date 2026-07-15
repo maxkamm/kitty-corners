@@ -50,31 +50,44 @@ export const RARITY: Record<Rarity, RarityInfo> = {
 export const RARITY_ORDER: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
 /**
- * Full roster — 20 breeds (GDD §10.2). `hasArt: false` breeds (Russian Blue,
- * Abyssinian, Norwegian Forest, and the Golden/Void/Cosmic legendaries) are shown
- * locked in the Collection and excluded from drops until their art lands.
+ * Full roster — 28 breeds (art sheets kc_kitty_list4 / _happy). Every breed has art
+ * (idle + happy). Rarity is a design assignment (см. §10.2) — tweak freely; the drop
+ * gating and Collection grouping follow the `rarity` field.
  */
 export const ROSTER: Breed[] = [
-  { id: 'bombay', name: 'Bombay', rarity: 'common', hasArt: true },
-  { id: 'tabby', name: 'Tabby', rarity: 'common', hasArt: true },
-  { id: 'white', name: 'White', rarity: 'common', hasArt: true },
+  // Common (everyday domestic looks)
   { id: 'tuxedo', name: 'Tuxedo', rarity: 'common', hasArt: true },
-  { id: 'cream', name: 'Cream', rarity: 'common', hasArt: true },
-  { id: 'bsh', name: 'British Shorthair', rarity: 'common', hasArt: true },
-  { id: 'calico', name: 'Calico', rarity: 'uncommon', hasArt: true },
-  { id: 'siamese', name: 'Siamese', rarity: 'uncommon', hasArt: true },
-  { id: 'persian', name: 'Persian', rarity: 'uncommon', hasArt: true },
-  { id: 'scottishfold', name: 'Scottish Fold', rarity: 'uncommon', hasArt: true },
-  { id: 'bengal', name: 'Bengal', rarity: 'rare', hasArt: true },
-  { id: 'mainecoon', name: 'Maine Coon', rarity: 'rare', hasArt: true },
-  { id: 'ragdoll', name: 'Ragdoll', rarity: 'rare', hasArt: true },
-  { id: 'russianblue', name: 'Russian Blue', rarity: 'rare', hasArt: false },
-  { id: 'sphynx', name: 'Sphynx', rarity: 'epic', hasArt: true },
-  { id: 'abyssinian', name: 'Abyssinian', rarity: 'epic', hasArt: false },
-  { id: 'norwegian', name: 'Norwegian Forest', rarity: 'epic', hasArt: false },
-  { id: 'golden', name: 'Golden', rarity: 'legendary', hasArt: false },
-  { id: 'void', name: 'Void', rarity: 'legendary', hasArt: false },
-  { id: 'cosmic', name: 'Cosmic', rarity: 'legendary', hasArt: false }
+  { id: 'dilutecalico', name: 'Dilute Calico', rarity: 'common', hasArt: true },
+  { id: 'tortoiseshell', name: 'Tortoiseshell', rarity: 'common', hasArt: true },
+  { id: 'oddeyedwhite', name: 'Odd-Eyed White', rarity: 'common', hasArt: true },
+  { id: 'americanshorthair', name: 'American Shorthair', rarity: 'common', hasArt: true },
+  { id: 'mainecoonred', name: 'Maine Coon (Red)', rarity: 'common', hasArt: true },
+  { id: 'munchkin', name: 'Munchkin', rarity: 'common', hasArt: true },
+  { id: 'japanesebobtail', name: 'Japanese Bobtail', rarity: 'common', hasArt: true },
+  // Uncommon
+  { id: 'russianblue', name: 'Russian Blue', rarity: 'uncommon', hasArt: true },
+  { id: 'burmese', name: 'Burmese', rarity: 'uncommon', hasArt: true },
+  { id: 'himalayan', name: 'Himalayan', rarity: 'uncommon', hasArt: true },
+  { id: 'ragdoll', name: 'Ragdoll', rarity: 'uncommon', hasArt: true },
+  { id: 'chartreux', name: 'Chartreux', rarity: 'uncommon', hasArt: true },
+  { id: 'exoticshorthair', name: 'Exotic Shorthair', rarity: 'uncommon', hasArt: true },
+  { id: 'turkishangora', name: 'Turkish Angora', rarity: 'uncommon', hasArt: true },
+  // Rare
+  { id: 'abyssinian', name: 'Abyssinian', rarity: 'rare', hasArt: true },
+  { id: 'tonkinese', name: 'Tonkinese', rarity: 'rare', hasArt: true },
+  { id: 'orientalshorthair', name: 'Oriental Shorthair', rarity: 'rare', hasArt: true },
+  { id: 'birman', name: 'Birman', rarity: 'rare', hasArt: true },
+  { id: 'norwegian', name: 'Norwegian Forest', rarity: 'rare', hasArt: true },
+  { id: 'siberian', name: 'Siberian', rarity: 'rare', hasArt: true },
+  // Epic
+  { id: 'singapura', name: 'Singapura', rarity: 'epic', hasArt: true },
+  { id: 'devonrex', name: 'Devon Rex', rarity: 'epic', hasArt: true },
+  { id: 'laperm', name: 'LaPerm', rarity: 'epic', hasArt: true },
+  { id: 'selkirkrex', name: 'Selkirk Rex', rarity: 'epic', hasArt: true },
+  // Legendary (rarest / most exotic)
+  { id: 'savannah', name: 'Savannah', rarity: 'legendary', hasArt: true },
+  { id: 'egyptianmau', name: 'Egyptian Mau', rarity: 'legendary', hasArt: true },
+  { id: 'vankedisi', name: 'Van Kedisi', rarity: 'legendary', hasArt: true }
 ];
 
 const BY_ID = new Map(ROSTER.map((b) => [b.id, b]));
