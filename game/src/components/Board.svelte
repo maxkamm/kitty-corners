@@ -412,8 +412,10 @@
     inset: 6%;
     border: 3px solid var(--accent);
     border-radius: 20%;
-    background: rgba(255, 148, 87, 0.18);
-    box-shadow: 0 0 0 3px rgba(255, 148, 87, 0.28);
+    /* white fill + white inner ring keep the target visible on ANY region colour
+       (an accent-only glow was invisible on the orange regions) */
+    background: rgba(255, 255, 255, 0.34);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 5px rgba(224, 118, 59, 0.55);
     animation: hint-glow 0.9s ease-in-out infinite;
     pointer-events: none;
   }
