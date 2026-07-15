@@ -53,7 +53,7 @@ check('no cats → null', attentivenessHint(level, empty()) === null);
   check('rowcol: targets the row neighbour', h.targets.includes(at(0, 1)));
   check('rowcol: targets the column neighbour', h.targets.includes(at(1, 0)));
   check('rowcol: does NOT target the diagonal yet', !h.targets.includes(at(1, 1)));
-  check('rowcol: cause is the cat', h.cause.length === 1 && h.cause[0] === at(0, 0));
+  check('rowcol: the cat itself is not highlighted (no cause)', h.cause.length === 0);
 }
 
 // ---- row/column already marked → touching (diagonal) rule next ----

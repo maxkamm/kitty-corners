@@ -619,21 +619,21 @@ export function attentivenessHint(level: LevelDef, board: CellState[]): HintView
         kind: 'eliminate',
         text: `One cat per row and column — add the missing paws here.`,
         targets: rowcol,
-        cause: [ci]
+        cause: []
       };
     if (diag.length)
       return {
         kind: 'eliminate',
         text: `Cats can't sit next to each other — add paws around this cat.`,
         targets: diag,
-        cause: [ci]
+        cause: []
       };
     if (region.length)
       return {
         kind: 'eliminate',
         text: `One cat per color — add the missing paws in this color.`,
         targets: region,
-        cause: [ci]
+        cause: []
       };
   }
   return null;
