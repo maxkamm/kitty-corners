@@ -398,14 +398,22 @@
   @keyframes err-fade {
     to { opacity: 0; }
   }
+  /* hint TARGET (the cell to act on): a strong, persistent accent ring + fill + halo
+     so it clearly stands out from the quiet dashed 'cause' cells around it. */
   .cell.hint::after {
     content: '';
     position: absolute;
     inset: 6%;
     border: 3px solid var(--accent);
     border-radius: 20%;
-    animation: hint-pulse 0.8s ease-in-out 3;
+    background: rgba(255, 148, 87, 0.18);
+    box-shadow: 0 0 0 3px rgba(255, 148, 87, 0.28);
+    animation: hint-glow 0.9s ease-in-out infinite;
     pointer-events: none;
+  }
+  @keyframes hint-glow {
+    0%, 100% { opacity: 0.78; transform: scale(0.97); }
+    50% { opacity: 1; transform: scale(1.03); }
   }
   @keyframes hint-pulse {
     0%, 100% { opacity: 0.35; transform: scale(0.96); }

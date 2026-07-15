@@ -661,7 +661,8 @@ function buildHint(level: LevelDef, board: CellState[]): HintView {
         kind: 'place',
         text: `Only one free cell left in ${where} — the cat goes here.`,
         targets: [empties[0]],
-        cause: cells
+        // cause excludes the target so the target keeps its own strong highlight
+        cause: cells.filter((i) => i !== empties[0])
       };
     return null;
   };
