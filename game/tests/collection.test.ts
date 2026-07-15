@@ -25,6 +25,7 @@ const store = new Map<string, string>();
 (globalThis as any).window = { matchMedia: () => ({ matches: true }) };
 
 const C = await import('../src/lib/collection.ts');
+const { storage } = await import('../src/lib/storage.ts');
 
 // ============================================================
 // 1) Drop weight gating (Р-48, Р-50) — base × gate, no discovery bias
@@ -159,6 +160,20 @@ const regionIds = ['a', 'b', 'c', 'd', 'e', 'f'];
   check('freshly discovered breed is unseen', C.isUnseen('dilutecalico'));
   C.markAllSeen();
   check('markAllSeen clears the unseen flag', !C.isUnseen('dilutecalico'));
+}
+
+// ============================================================
+// 8) Robust load: a malformed/old-shape saved blob must not break the store
+//    (regression: `discovered` undefined → `discovered[id]` threw at mount)
+// ============================================================
+{
+  // simulate a stale save from an earlier build with no `discovered` map
+  storage.set('collection', { v: 1 } as never);
+  C.initCollectionPersistence();
+  const d = get(C.collection).discovered;
+  check('malformed save → discovered is an object', !!d && typeof d === 'object');
+  eq('malformed save → discovered is empty', Object.keys(d).length, 0);
+  check('indexing after malformed load does not throw', C.isDiscovered('tuxedo') === false);
 }
 
 // ---- report ----

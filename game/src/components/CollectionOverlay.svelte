@@ -25,17 +25,24 @@
 
   let selected: string | null = null;
 
-  $: disc = $collection.discovered;
+  $: disc = $collection.discovered ?? {};
   $: unlockedCount = Object.keys(disc).length;
   $: total = revealAll ? ROSTER.filter((b) => b.hasArt).length : rosterSize();
 
-  const isUnlocked = (id: string, hasArt: boolean): boolean =>
-    revealAll ? hasArt : !!disc[id];
-  const isUnseen = (id: string): boolean => !revealAll && !!disc[id] && !disc[id].seen;
+  // NOTE: `disc` is passed in explicitly (not closed over) so Svelte sees the
+  // reactive dependency and orders these AFTER `disc` is assigned. Closing over
+  // `disc` hid the dependency, so `groups` ran before `disc` existed → the very
+  // first `disc[id]` threw at mount and killed the scheduler. Also null-safe.
+  const isUnlocked = (d: typeof disc, id: string, hasArt: boolean): boolean =>
+    revealAll ? hasArt : !!(d && d[id]);
+  const isUnseen = (id: string): boolean => {
+    const r = disc && disc[id];
+    return !revealAll && !!r && !r.seen;
+  };
 
   $: groups = RARITY_ORDER.map((r) => {
     const breeds = ROSTER.filter((b) => b.rarity === r && (revealAll ? b.hasArt : true));
-    const got = breeds.filter((b) => isUnlocked(b.id, b.hasArt)).length;
+    const got = breeds.filter((b) => isUnlocked(disc, b.id, b.hasArt)).length;
     return { rarity: r, info: RARITY[r], breeds, got, tot: breeds.length };
   }).filter((g) => g.breeds.length);
 
@@ -47,7 +54,7 @@
   $: selRec = selected ? disc[selected] : undefined;
   $: selInfo = selBreed ? RARITY[selBreed.rarity] : undefined;
   $: selSprite = selected ? spriteForBreed(selected) : null;
-  $: selUnlocked = selBreed ? isUnlocked(selBreed.id, selBreed.hasArt) : false;
+  $: selUnlocked = selBreed ? isUnlocked(disc, selBreed.id, selBreed.hasArt) : false;
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions a11y-no-noninteractive-element-interactions -->
@@ -90,7 +97,7 @@
           <div class="rule"></div>
           <div class="grid">
             {#each g.breeds as b}
-              {@const unlocked = isUnlocked(b.id, b.hasArt)}
+              {@const unlocked = isUnlocked(disc, b.id, b.hasArt)}
               {@const sprite = spriteForBreed(b.id)}
               <button class="cc" class:locked={!unlocked} on:click={() => (selected = b.id)}>
                 {#if isUnseen(b.id)}<span class="newpip">NEW</span>{/if}

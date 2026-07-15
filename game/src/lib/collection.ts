@@ -129,8 +129,24 @@ function emptyState(): CollectionState {
   return { v: 1, discovered: {} };
 }
 
+/**
+ * Load persisted state, tolerating missing or old-shape data. A save written by
+ * an earlier build (or a partially-written / migrated blob) may lack a valid
+ * `discovered` map; without this guard `discovered` could be `undefined` and the
+ * first `discovered[id]` access would throw at mount. Always returns a well-formed
+ * state so every consumer can safely index `.discovered`.
+ */
+function loadState(): CollectionState {
+  const raw = storage.get('collection', emptyState()) as { discovered?: unknown } | null;
+  const d = raw && typeof raw === 'object' ? raw.discovered : undefined;
+  return {
+    v: 1,
+    discovered: d && typeof d === 'object' ? (d as Record<string, DiscoveryRecord>) : {}
+  };
+}
+
 /** Persisted discovery state; write-through to storage on every change. */
-export const collection = writable<CollectionState>(storage.get('collection', emptyState()));
+export const collection = writable<CollectionState>(loadState());
 
 /**
  * Wire up collection persistence — called from initGamePersistence() AFTER
@@ -138,7 +154,7 @@ export const collection = writable<CollectionState>(storage.get('collection', em
  * never overwrites a saved collection before hydrate resolves.
  */
 export function initCollectionPersistence(): void {
-  collection.set(storage.get('collection', emptyState()));
+  collection.set(loadState());
   collection.subscribe((v) => storage.set('collection', v));
 }
 
