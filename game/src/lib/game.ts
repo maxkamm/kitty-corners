@@ -574,6 +574,12 @@ function hintText(step: SolverStep): string {
       return `A cat here holds its row, column, color and touching cells — mark these with paws.`;
     case 'confined':
       return `This color fits only along one line — the rest of that line is out, mark it with paws.`;
+    case 'lineset': {
+      const axis = step.groupKind === 'row' ? 'row' : 'column';
+      const k = new Set((step.cause ?? []).map((c) => (axis === 'row' ? c.row : c.col))).size;
+      const lines = axis === 'row' ? 'rows' : 'columns';
+      return `These ${k} colors fill ${k} ${lines} — no other cat fits there, mark with paws.`;
+    }
     case 'starve':
       return `A cat here would leave another group with nowhere to go — so it's out, mark with paws.`;
     default:
