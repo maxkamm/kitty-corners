@@ -242,17 +242,30 @@ function gate(difficulty: number, r: RarityInfo): number {
 }
 
 /**
- * Draw weight for a breed at a given difficulty (Р-48):
- *   weight = base[tier] × gate(difficulty, tier) × bias
- * bias favours not-yet-discovered breeds (×2.5) so the collection fills without
- * guaranteeing any single discovery. Art-less breeds never drop.
+ * Draw weight for a breed at a given difficulty (Р-48): base[tier] × gate. Used to
+ * pick the featured newcomer among eligible undiscovered breeds (rarer tiers weigh
+ * less, and are 0 until their difficulty gate opens). Art-less breeds never drop.
  */
-export function dropWeight(breed: Breed, difficulty: number, discovered: Set<string>): number {
+export function dropWeight(breed: Breed, difficulty: number): number {
   if (!breed.hasArt) return 0;
   const g = gate(difficulty, RARITY[breed.rarity]);
   if (g <= 0) return 0;
-  const bias = discovered.has(breed.id) ? 1 : 2.5;
-  return RARITY[breed.rarity].base * g * bias;
+  return RARITY[breed.rarity].base * g;
+}
+
+/** Fixed starter breed for the tutorial and level 1 — the first cat collected. */
+export const BASE_BREED = 'tuxedo';
+
+/**
+ * Per-level chance to introduce a NEW breed (§10.4). Discoveries feel frequent
+ * early and rare late: ~every level (1–10), ~every 2nd (11–30), ~every 4th
+ * (31–60), then ~1 in 10.
+ */
+export function newCatChance(level: number): number {
+  if (level <= 10) return 1;
+  if (level <= 30) return 0.5;
+  if (level <= 60) return 0.25;
+  return 0.1;
 }
 
 /**
@@ -302,36 +315,77 @@ function shuffle<T>(arr: T[], rng: () => number): T[] {
 }
 
 export interface AssignCtx {
-  /** difficulty proxy = player-facing level number (curve position, Р-38). */
+  /** difficulty proxy = player-facing level number (curve position). */
   levelNumber: number;
-  /** increments on each fresh entry to a level → stable on restart, re-rolls on re-entry. */
+  /** increments on each fresh entry to a level -> stable on restart, re-rolls on re-entry. */
   entryNonce: number;
-  /** currently discovered breed ids (drives K and the bias). */
+  /** currently discovered breed ids. */
   discovered: Set<string>;
   /** distinct region ids present on the board. */
   regionIds: string[];
   /** board size N. */
   size: number;
+  /** the starter (given) region id -> always gets a familiar, already-collected breed. */
+  givenRegionId: string;
+  /** fixed base breed used while the collection is still empty (tutorial / level 1). */
+  baseBreed: string;
 }
 
 /**
- * Assign a breed to every region id on the board (GDD §10.3–§10.4). Deterministic
- * for a given (levelNumber, entryNonce): the same seed yields the same map (stable
- * across a restart), a new entry re-rolls. Each chosen breed occupies ≥1 region.
+ * Assign a breed to every region (GDD 10.3-10.5). Model:
+ *  - Empty collection (tutorial / level 1) -> the base breed everywhere.
+ *  - Otherwise the starter region gets a FAMILIAR (already-collected) breed, and at
+ *    most ONE new breed (the "featured newcomer") appears -- gated by newCatChance()
+ *    and rarity eligibility -- placed in a non-starter region so the player meets it
+ *    on their own commit. Remaining regions are familiar breeds, so old cats keep
+ *    showing up. Deterministic per (levelNumber, entryNonce).
  */
 export function assignBoardBreeds(ctx: AssignCtx): Record<string, string> {
   const rng = rngFor(`${ctx.levelNumber}:${ctx.entryNonce}`);
-  const k = boardBreedCount(ctx.discovered.size, ctx.size, ctx.regionIds.length);
-  const pool = ROSTER.map((b) => ({ b, w: dropWeight(b, ctx.levelNumber, ctx.discovered) })).filter(
-    (x) => x.w > 0
+  const regions = ctx.regionIds;
+
+  // Bootstrap: no collection yet -> the base cat everywhere.
+  const collected = ROSTER.filter((b) => ctx.discovered.has(b.id));
+  if (collected.length === 0) {
+    const map: Record<string, string> = {};
+    for (const rid of regions) map[rid] = ctx.baseBreed;
+    return map;
+  }
+
+  // 1) featured newcomer: at most one, gated by the per-level chance + rarity gate.
+  let newcomer: Breed | null = null;
+  if (rng() < newCatChance(ctx.levelNumber)) {
+    const eligible = ROSTER.map((b) => ({
+      b,
+      w: ctx.discovered.has(b.id) ? 0 : dropWeight(b, ctx.levelNumber)
+    })).filter((x) => x.w > 0);
+    const picked = weightedSample(eligible, 1, rng);
+    if (picked.length) newcomer = picked[0];
+  }
+
+  // 2) distinct breeds on the board (readability cap), with room for a familiar
+  //    starter (+ the newcomer if any).
+  const cap = boardBreedCount(ctx.discovered.size, ctx.size, regions.length);
+  const distinct = Math.min(regions.length, Math.max(cap, newcomer ? 2 : 1));
+  const familiarSlots = Math.max(1, distinct - (newcomer ? 1 : 0));
+  const familiars = weightedSample(
+    collected.map((b) => ({ b, w: 1 })),
+    familiarSlots,
+    rng
   );
-  let chosen = weightedSample(pool, k, rng);
-  if (chosen.length === 0) chosen = [ROSTER[0]]; // safety: commons are eligible from level 1
-  const regions = shuffle(ctx.regionIds.slice(), rng);
+  if (familiars.length === 0) familiars.push(collected[0]);
+
+  // 3) place: starter = a familiar; newcomer -> a non-starter region; rest familiar.
+  const others = shuffle(
+    regions.filter((r) => r !== ctx.givenRegionId),
+    rng
+  );
   const map: Record<string, string> = {};
-  regions.forEach((rid, i) => {
-    const breed = i < chosen.length ? chosen[i] : chosen[Math.floor(rng() * chosen.length)];
-    map[rid] = breed.id;
-  });
+  map[ctx.givenRegionId] = familiars[0].id;
+  let oi = 0;
+  if (newcomer && others.length) map[others[oi++]] = newcomer.id;
+  for (; oi < others.length; oi++) {
+    map[others[oi]] = familiars[Math.floor(rng() * familiars.length)].id;
+  }
   return map;
 }

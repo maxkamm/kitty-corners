@@ -18,7 +18,8 @@ import {
   assignBoardBreeds,
   discoverBreed,
   discoveredSet,
-  initCollectionPersistence
+  initCollectionPersistence,
+  BASE_BREED
 } from './collection';
 import levelsData from '../data/levels.json';
 
@@ -351,7 +352,9 @@ export function loadLevel(): void {
       entryNonce,
       discovered: discoveredSet(),
       regionIds: distinctRegionIds(level),
-      size: level.size
+      size: level.size,
+      givenRegionId: level.regions[Math.floor(givenIdx[0] / level.size)][givenIdx[0] % level.size],
+      baseBreed: BASE_BREED
     });
     boardBreeds.set(map);
     revealBreedId.set(null);
