@@ -1,9 +1,55 @@
-/** WebAudio wrapper (GDD §7). Tiny synth cues, no assets. */
+/** WebAudio wrapper (GDD §7). Tiny synth cues + looping background music. */
+
+/** Music track lives in public/ (served next to index.html) rather than inlined:
+ *  a 1.3 MB base64 blob in the JS would choke the release obfuscator. */
+const musicUrl = import.meta.env.BASE_URL + 'music.mp3';
+
 let ctx: AudioContext | null = null;
 /** User's Sound setting (GDD §5.3). */
 let userEnabled = true;
 /** Platform-requested audio gate (Bridge AUDIO_STATE_CHANGED); overrides the user setting. */
 let platformAudioAllowed = true;
+
+/* ---- background music (looping, separate from the SFX synth) ---- */
+let musicEl: HTMLAudioElement | null = null;
+/** User's Music setting — independent of the Sound (SFX) toggle. */
+let musicUserEnabled = true;
+
+/** Music plays only when the user has it on AND the platform allows audio. */
+function musicAudible(): boolean {
+  return musicUserEnabled && platformAudioAllowed;
+}
+
+function ensureMusic(): HTMLAudioElement | null {
+  if (typeof Audio === 'undefined') return null;
+  if (!musicEl) {
+    musicEl = new Audio(musicUrl);
+    musicEl.loop = true;
+    musicEl.volume = 0.1; // soft background bed — deliberately low (≈1/3 of the initial 0.3)
+    musicEl.preload = 'auto';
+  }
+  return musicEl;
+}
+
+/** Reconcile playback with the current settings. play() may reject until the
+ *  first user gesture (autoplay policy) — that's fine, startMusic() retries. */
+function applyMusic(): void {
+  const m = ensureMusic();
+  if (!m) return;
+  if (musicAudible()) void m.play().catch(() => {});
+  else m.pause();
+}
+
+/** Toggle background music (bound to the Music setting). */
+export function setMusicEnabled(v: boolean): void {
+  musicUserEnabled = v;
+  applyMusic();
+}
+
+/** Kick playback off from the first user gesture — browsers block audio until then. */
+export function startMusic(): void {
+  applyMusic();
+}
 
 /** Sound is audible only when the user has it on AND the platform allows audio. */
 function audible(): boolean {
@@ -22,6 +68,8 @@ export function setPlatformAudioAllowed(v: boolean): void {
     if (!v && ctx.state === 'running') void ctx.suspend();
     else if (v && ctx.state === 'suspended') void ctx.resume();
   }
+  // Pause/resume the music with the same platform gate.
+  applyMusic();
 }
 
 function ac(): AudioContext | null {
