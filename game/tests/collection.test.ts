@@ -36,7 +36,7 @@ const C = await import('../src/lib/collection.ts');
 {
   const empty = new Set<string>();
   const common = C.breedById('tuxedo')!; // common, threshold 1
-  const rare = C.breedById('abyssinian')!; // rare, threshold 20
+  const rare = C.breedById('tonkinese')!; // rare, threshold 20
   const legendary = C.breedById('savannah')!; // legendary, threshold 60
 
   check('common drops from level 1', C.dropWeight(common, 1, empty) > 0);
