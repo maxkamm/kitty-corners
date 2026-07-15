@@ -2,32 +2,20 @@
   /**
    * In-level "New cat!" reveal (GDD §10.5, Р-47). Pops when a long-press commit
    * (or autocat) places the first cat of a breed not yet in the collection.
-   * Input + the active-play timer are already paused by game.ts; tapping anywhere
-   * or the auto-timeout calls dismissReveal() to resume play.
+   * Input + the active-play timer are already paused by game.ts; the card stays up
+   * until the player taps anywhere — no auto-dismiss — then dismissReveal() resumes.
    */
-  import { onDestroy } from 'svelte';
   import { revealBreedId, dismissReveal } from '../lib/game';
   import { breedById, RARITY } from '../lib/collection';
   import { spriteForBreed } from '../lib/collectionSprites';
-
-  const AUTO_MS = 1600;
-  let timer: ReturnType<typeof setTimeout> | undefined;
 
   $: breed = $revealBreedId ? breedById($revealBreedId) : undefined;
   $: sprite = $revealBreedId ? spriteForBreed($revealBreedId) : null;
   $: rarity = breed ? RARITY[breed.rarity] : undefined;
 
-  // arm the auto-dismiss whenever a new card appears
-  $: if ($revealBreedId) arm();
-  function arm(): void {
-    clearTimeout(timer);
-    timer = setTimeout(() => dismissReveal(), AUTO_MS);
-  }
   function close(): void {
-    clearTimeout(timer);
     dismissReveal();
   }
-  onDestroy(() => clearTimeout(timer));
 </script>
 
 {#if breed}
