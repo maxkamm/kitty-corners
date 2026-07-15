@@ -398,14 +398,24 @@
   @keyframes err-fade {
     to { opacity: 0; }
   }
+  /* hint TARGET (the cell to act on): a strong, persistent accent ring + fill + halo
+     so it clearly stands out from the quiet dashed 'cause' cells around it. */
   .cell.hint::after {
     content: '';
     position: absolute;
     inset: 6%;
     border: 3px solid var(--accent);
     border-radius: 20%;
-    animation: hint-pulse 0.8s ease-in-out 3;
+    /* white fill + white inner ring keep the target visible on ANY region colour
+       (an accent-only glow was invisible on the orange regions) */
+    background: rgba(255, 255, 255, 0.34);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 5px rgba(224, 118, 59, 0.55);
+    animation: hint-glow 0.9s ease-in-out infinite;
     pointer-events: none;
+  }
+  @keyframes hint-glow {
+    0%, 100% { opacity: 0.78; transform: scale(0.97); }
+    50% { opacity: 1; transform: scale(1.03); }
   }
   @keyframes hint-pulse {
     0%, 100% { opacity: 0.35; transform: scale(0.96); }
