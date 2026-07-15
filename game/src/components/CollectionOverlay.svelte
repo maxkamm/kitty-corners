@@ -1,9 +1,11 @@
 <script lang="ts">
   /**
-   * Collection screen (GDD §10.6): rarity-grouped roster with progress, locked
-   * silhouettes, NEW pips and a per-cat detail card (§10, window 3 + 4).
-   * With the feature OFF it degrades to a plain reveal-all roster (no progress /
-   * locks) so the menu button still shows the cats.
+   * Collection screen (GDD §10.6) — laid out per collection_scrn.png: title + inline
+   * progress + close, an intro banner, rarity sections ("● NAME x/n" + divider) and a
+   * 3-column grid of tiles. Unlocked = portrait + name (+ NEW pill); locked = a generic
+   * cat silhouette + "???". Tapping a cat opens the detail card (window 4).
+   * With the feature OFF it degrades to a plain reveal-all roster (no progress / locks).
+   * Uses the shared palette tokens (§6.4); no new colours.
    */
   import { createEventDispatcher, onDestroy } from 'svelte';
   import {
@@ -31,13 +33,12 @@
     revealAll ? hasArt : !!disc[id];
   const isUnseen = (id: string): boolean => !revealAll && !!disc[id] && !disc[id].seen;
 
-  $: groups = RARITY_ORDER.map((r) => ({
-    rarity: r,
-    info: RARITY[r],
-    breeds: ROSTER.filter((b) => b.rarity === r && (revealAll ? b.hasArt : true))
-  })).filter((g) => g.breeds.length);
+  $: groups = RARITY_ORDER.map((r) => {
+    const breeds = ROSTER.filter((b) => b.rarity === r && (revealAll ? b.hasArt : true));
+    const got = breeds.filter((b) => isUnlocked(b.id, b.hasArt)).length;
+    return { rarity: r, info: RARITY[r], breeds, got, tot: breeds.length };
+  }).filter((g) => g.breeds.length);
 
-  // mark seen on close, so NEW pips stay visible for this viewing then clear next time
   onDestroy(() => {
     if (!revealAll) markAllSeen();
   });
@@ -61,21 +62,32 @@
   <div class="sheet">
     <div class="head">
       <h2>Collection</h2>
-      <button class="x" aria-label="Close" on:click={() => dispatch('close')}>✕</button>
+      {#if !revealAll}
+        <span class="progress"><b>{unlockedCount}</b> / {total}</span>
+      {/if}
+      <button class="close" aria-label="Close" on:click={() => dispatch('close')}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+        </svg>
+      </button>
     </div>
+
     {#if !revealAll}
-      <div class="prog">
-        <div class="pt">{unlockedCount} / {total} collected</div>
-        <div class="bar"><i style="width:{(unlockedCount / total) * 100}%"></i></div>
+      <div class="intro">
+        Play more levels to find all cats.<br />
+        Harder levels have a better chance to reveal the rarest ones!
       </div>
     {/if}
 
     <div class="scroll">
       {#each groups as g}
         <div class="sect">
-          <div class="sh" style="color:{g.info.color}">
-            <span class="dot" style="background:{g.info.color}"></span>{g.info.label}
+          <div class="sh">
+            <span class="dot" style="background:{g.info.color}"></span>
+            <span class="sh-name" style="color:{g.info.color}">{g.info.label}</span>
+            {#if !revealAll}<span class="sh-count">{g.got} / {g.tot}</span>{/if}
           </div>
+          <div class="rule"></div>
           <div class="grid">
             {#each g.breeds as b}
               {@const unlocked = isUnlocked(b.id, b.hasArt)}
@@ -85,14 +97,15 @@
                 <div class="cp">
                   {#if unlocked && sprite}
                     <img src={sprite.idle} alt={b.name} draggable="false" />
-                  {:else if sprite}
-                    <img class="sil" src={sprite.idle} alt="" draggable="false" />
                   {:else}
-                    <span class="q">?</span>
+                    <svg class="sil" viewBox="0 0 100 100" aria-hidden="true">
+                      <path d="M20 40 L29 6 L52 30 Z" />
+                      <path d="M80 40 L71 6 L48 30 Z" />
+                      <ellipse cx="50" cy="60" rx="35" ry="33" />
+                    </svg>
                   {/if}
                 </div>
                 <div class="nm">{unlocked ? b.name : '???'}</div>
-                <div class="rd" style="background:{g.info.color};opacity:{unlocked ? 1 : 0.4}"></div>
               </button>
             {/each}
           </div>
@@ -102,7 +115,6 @@
   </div>
 
   {#if selBreed}
-    <!-- Cat detail (§10.6, window 4) -->
     <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions a11y-no-noninteractive-element-interactions -->
     <div
       class="detail"
@@ -113,15 +125,21 @@
       }}
     >
       <div class="dcard" style="--rar:{selInfo?.color}">
-        <button class="x dclose" aria-label="Back" on:click={() => (selected = null)}>✕</button>
+        <button class="close dclose" aria-label="Back" on:click={() => (selected = null)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+          </svg>
+        </button>
         <span class="badge" style="background:{selInfo?.color}">{selInfo?.label}</span>
         <div class="port">
           {#if selUnlocked && selSprite}
             <img src={selSprite.happy} alt={selBreed.name} draggable="false" />
-          {:else if selSprite}
-            <img class="sil" src={selSprite.idle} alt="" draggable="false" />
           {:else}
-            <span class="q big">?</span>
+            <svg class="sil" viewBox="0 0 100 100" aria-hidden="true">
+              <path d="M20 40 L29 6 L52 30 Z" />
+              <path d="M80 40 L71 6 L48 30 Z" />
+              <ellipse cx="50" cy="60" rx="35" ry="33" />
+            </svg>
           {/if}
         </div>
         <h3>{selUnlocked ? selBreed.name : '???'}</h3>
@@ -150,165 +168,185 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 18px;
     z-index: 10;
   }
   .sheet {
     width: 100%;
-    max-width: 360px;
-    height: 86%;
+    max-width: 380px;
+    height: 90%;
     background: var(--bg);
-    border-radius: 24px;
-    padding: 16px 14px 0;
+    border-radius: 28px;
+    padding: 20px 18px 0;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
     position: relative;
   }
+  /* header */
   .head {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 12px;
   }
   h2 {
     font-family: 'Baloo 2', sans-serif;
     font-weight: 800;
-    font-size: 22px;
+    font-size: 30px;
+    color: var(--ink);
+    flex: 1;
+    min-width: 0;
   }
-  .x {
-    width: 32px;
-    height: 32px;
-    border-radius: 12px;
+  .progress {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .progress b {
+    color: var(--accent-edge);
+  }
+  /* squircle close (pressability §6.7) */
+  .close {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 15px;
     background: var(--surface);
     border: 1.5px solid var(--line);
-    color: var(--ink-soft);
-    font-size: 15px;
+    border-bottom: 4px solid var(--edge);
+    color: var(--accent);
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: transform 0.07s;
   }
-  .prog {
-    margin-top: 8px;
+  .close:active {
+    transform: translateY(2px);
   }
-  .pt {
-    font-size: 12px;
-    font-weight: 800;
+  .close svg {
+    width: 22px;
+    height: 22px;
+  }
+  /* intro banner */
+  .intro {
+    margin-top: 12px;
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 12px 14px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 13.5px;
+    line-height: 1.45;
     color: var(--ink-soft);
-    margin-bottom: 4px;
-  }
-  .bar {
-    height: 8px;
-    border-radius: 999px;
-    background: var(--line);
-    overflow: hidden;
-  }
-  .bar i {
-    display: block;
-    height: 100%;
-    background: var(--accent);
-    border-radius: 999px;
-    transition: width 0.4s ease;
+    box-shadow: var(--shadow);
   }
   .scroll {
     flex: 1;
     overflow-y: auto;
-    margin-top: 12px;
-    padding-bottom: 16px;
+    margin-top: 16px;
+    padding-bottom: 18px;
   }
   .sect {
-    margin-bottom: 14px;
+    margin-bottom: 18px;
   }
   .sh {
     display: flex;
     align-items: center;
-    gap: 7px;
-    font-family: 'Baloo 2', sans-serif;
-    font-weight: 800;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    gap: 9px;
     margin-bottom: 8px;
   }
   .dot {
-    width: 9px;
-    height: 9px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
+    flex: none;
+  }
+  .sh-name {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .sh-count {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .rule {
+    height: 2px;
+    background: var(--line);
+    border-radius: 2px;
+    margin-bottom: 12px;
   }
   .grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 9px;
+    gap: 10px;
   }
   .cc {
     background: var(--surface);
     border: none;
-    border-radius: 14px;
+    border-radius: 18px;
     box-shadow: var(--shadow);
-    padding: 9px 5px 7px;
+    padding: 12px 8px 10px;
     text-align: center;
     position: relative;
     cursor: pointer;
   }
   .cp {
-    width: 52px;
-    height: 52px;
-    margin: 0 auto 5px;
-    border-radius: 15px; /* squircle */
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 8px;
+    border-radius: 22px; /* squircle */
     background: var(--bg);
     display: flex;
     align-items: center;
     justify-content: center;
   }
   .cp img {
-    width: 46px;
-    height: 46px;
+    width: 78px;
+    height: 78px;
     object-fit: contain;
   }
-  .cp img.sil {
-    filter: brightness(0);
-    opacity: 0.16;
-  }
   .cc.locked .cp {
-    background: #e7ded2;
+    background: transparent;
   }
-  .q {
-    font-family: 'Baloo 2', sans-serif;
-    font-weight: 800;
-    font-size: 22px;
-    color: #c3b8a8;
-  }
-  .q.big {
-    font-size: 54px;
+  .sil {
+    width: 70%;
+    height: 70%;
+    fill: rgba(138, 128, 147, 0.32); /* ink-soft, soft — generic cat silhouette */
   }
   .nm {
-    font-size: 9.5px;
+    font-family: 'Nunito', sans-serif;
     font-weight: 800;
-    line-height: 1.1;
+    font-size: 12px;
+    line-height: 1.15;
     color: var(--ink);
   }
   .cc.locked .nm {
-    color: #b7ac9c;
-  }
-  .rd {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    margin: 3px auto 0;
+    color: var(--ink-soft);
+    letter-spacing: 1px;
   }
   .newpip {
     position: absolute;
-    top: -5px;
-    right: -5px;
+    top: -7px;
+    left: -4px;
     background: var(--accent);
     color: #fff;
     font-family: 'Baloo 2', sans-serif;
     font-weight: 800;
-    font-size: 8px;
-    padding: 2px 5px;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
     border-radius: 999px;
+    border-bottom: 2px solid var(--accent-edge);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
   }
-  /* detail (window 4) */
+  /* detail card (window 4) */
   .detail {
     position: absolute;
     inset: 0;
@@ -321,51 +359,58 @@
   }
   .dcard {
     width: 100%;
-    max-width: 268px;
+    max-width: 280px;
     background: var(--surface);
     border-radius: 26px;
-    padding: 20px 18px 18px;
+    padding: 22px 18px 18px;
     text-align: center;
     box-shadow: 0 22px 50px rgba(0, 0, 0, 0.3);
     position: relative;
   }
   .dclose {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 14px;
+    right: 14px;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+  }
+  .dclose svg {
+    width: 18px;
+    height: 18px;
   }
   .badge {
     position: absolute;
-    top: 16px;
-    left: 16px;
+    top: 18px;
+    left: 18px;
     color: #fff;
     font-family: 'Baloo 2', sans-serif;
     font-weight: 700;
     font-size: 11px;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
-    padding: 3px 12px;
+    padding: 4px 12px;
     border-radius: 999px;
   }
   .port {
     width: 150px;
     height: 150px;
-    margin: 8px auto 10px;
+    margin: 10px auto 10px;
     border-radius: 40px; /* squircle */
-    background: color-mix(in srgb, var(--rar) 16%, var(--surface));
+    background: color-mix(in srgb, var(--rar) 15%, var(--surface));
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: inset 0 -6px 14px rgba(0, 0, 0, 0.08);
+    box-shadow: inset 0 -6px 14px rgba(0, 0, 0, 0.07);
   }
   .port img {
     width: 132px;
     height: 132px;
     object-fit: contain;
   }
-  .port img.sil {
-    filter: brightness(0);
-    opacity: 0.18;
+  .port .sil {
+    width: 60%;
+    height: 60%;
   }
   .dcard h3 {
     font-family: 'Baloo 2', sans-serif;
