@@ -150,11 +150,13 @@
           {/if}
         </div>
         <h3>{selUnlocked ? selBreed.name : '???'}</h3>
-        {#if selUnlocked && selRec}
+        {#if selUnlocked}
           <div class="stats">
             <div class="r"><span>Rarity</span><b style="color:{selInfo?.color}">{selInfo?.label}</b></div>
-            <div class="r"><span>Times seen</span><b>×{selRec.count}</b></div>
-            <div class="r"><span>First met</span><b>Level {selRec.firstLevel}</b></div>
+            {#if selRec}
+              <div class="r"><span>Times seen</span><b>×{selRec.count}</b></div>
+              <div class="r"><span>First met</span><b>Level {selRec.firstLevel}</b></div>
+            {/if}
           </div>
         {:else}
           <p class="locked-note">
