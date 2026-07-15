@@ -2,6 +2,7 @@
   /** Victory (GDD §5.5, Р-30): Win streak feature card + Best streak + time pill + confetti. */
   import LeaderboardOverlay from '../components/LeaderboardOverlay.svelte';
   import LeaderboardPanel from '../components/LeaderboardPanel.svelte';
+  import CollectionRecap from '../components/CollectionRecap.svelte';
   import { winLevel, winStreak, bestStreak, winTime, winScore, totalScore, nextLevel } from '../lib/game';
   import { leaderboardType, showNativePopup, winRanks } from '../lib/leaderboard';
   import { catHappyUrl } from '../lib/skin';
@@ -70,6 +71,9 @@
       <span class="total">Total · <b>{fmtNum($totalScore)}</b></span>
     </div>
     <div class="time-pill"><span class="lbl">Your time</span> {fmtTime($winTime)}</div>
+
+    <!-- Cat collection recap (GDD §10.5): compact strip of breeds discovered this level -->
+    <CollectionRecap />
 
     <!-- Mobile rank strip (Р-45): compact climb animation; desktop shows the panel instead -->
     {#if $leaderboardType === 'in_game' && $winRanks}
