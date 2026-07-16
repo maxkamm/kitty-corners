@@ -13,6 +13,14 @@ import { vibrate } from './haptics';
 import { solveWithLog } from './solver';
 import { computeScore } from './score';
 import { submitScore, queueGain } from './leaderboard';
+import { FEATURES } from './features';
+import {
+  assignBoardBreeds,
+  discoverBreed,
+  discoveredSet,
+  initCollectionPersistence,
+  BASE_BREED
+} from './collection';
 import levelsData from '../data/levels.json';
 
 /** On-disk format stores each region row as a compact string ("aabbbc"). */
@@ -58,6 +66,7 @@ export function initGamePersistence(): void {
   bestStreak.subscribe((v) => storage.set('bestStreak', v));
   tutorialDone.subscribe((v) => storage.set('tutorialDone', v));
   totalScore.subscribe((v) => storage.set('totalScore', v));
+  initCollectionPersistence(); // cat collection (GDD §10) — same deferred wiring
 }
 
 // ---------- session ----------
@@ -92,6 +101,14 @@ export const winStreak = writable(0);
 export const winLevel = writable(0);
 /** score earned for the level just won (victory card, Р-42) */
 export const winScore = writable(0);
+
+// ---------- cat collection (GDD §10, post-MVP; gated by FEATURES.collection) ----------
+/** region id → breed id for the current board (empty when the feature is off). */
+export const boardBreeds = writable<Record<string, string>>({});
+/** breed id to render in the in-level "New cat!" card, or null (Р-47). */
+export const revealBreedId = writable<string | null>(null);
+/** breed ids first discovered on the current level — Victory recap block (§10.5). */
+export const levelNewBreeds = writable<string[]>([]);
 
 // ---------- per-run scoring counters (Р-42) ----------
 /** wrong commits this run */
@@ -156,6 +173,10 @@ let solverLog: SolverStep[] | null = null;
 let solutionSet = new Set<number>();
 let errorTimer: ReturnType<typeof setTimeout> | undefined;
 let outcomeTimer: ReturnType<typeof setTimeout> | undefined;
+/** Increments on each fresh level entry → seeds the breed roll (stable on restart). */
+let entryNonce = 0;
+/** true when the in-level reveal card is up and that commit already solved the level. */
+let pendingSolve = false;
 
 /**
  * Difficulty curve (Р-38): levels 1..N walk the pool in curve order;
@@ -256,6 +277,45 @@ function isSolved(level: LevelDef, board: CellState[]): boolean {
   return count === n;
 }
 
+// ---------- cat collection helpers (GDD §10, gated by FEATURES.collection) ----------
+function distinctRegionIds(level: LevelDef): string[] {
+  const s = new Set<string>();
+  for (const row of level.regions) for (const id of row) s.add(id);
+  return [...s];
+}
+
+/**
+ * If the just-placed cell reveals a NEW breed (feature on), record the discovery,
+ * raise the in-level "New cat!" card and pause input + timer; the caller returns and
+ * the solve check is deferred to dismissReveal() (§10.5). Returns true when a card
+ * was shown; false when the feature is off or the breed is already known.
+ */
+function maybeRevealAt(i: number, level: LevelDef): boolean {
+  if (!FEATURES.collection) return false;
+  const rid = level.regions[Math.floor(i / level.size)][i % level.size];
+  const bid = get(boardBreeds)[rid];
+  if (!bid) return false;
+  if (!discoverBreed(bid, get(levelNumber))) return false; // already known → no card
+  levelNewBreeds.update((a) => (a.includes(bid) ? a : [...a, bid]));
+  pendingSolve = isSolved(level, get(cells));
+  revealBreedId.set(bid);
+  inputLocked = true;
+  pauseTimer(); // reveal time is excluded from "Your time" (KC-5)
+  return true;
+}
+
+/** Dismiss the in-level "New cat!" card (tap / auto-timeout); resume play (§10.5). */
+export function dismissReveal(): void {
+  if (get(revealBreedId) === null) return;
+  revealBreedId.set(null);
+  inputLocked = false;
+  resumeTimer();
+  if (pendingSolve) {
+    pendingSolve = false;
+    if (isSolved(get(currentLevel), get(cells))) void onWin();
+  }
+}
+
 // ---------- level lifecycle ----------
 /** Level intro (Р-36): given cat pops in, then X marks ripple out from it. */
 const INTRO_MS = 1400;
@@ -283,6 +343,35 @@ export function loadLevel(): void {
   }
   givenCells.set(givenIdx);
   cells.set(board);
+
+  // cat collection (GDD §10): roll the board's breeds, discover givens silently
+  if (FEATURES.collection) {
+    entryNonce++;
+    const map = assignBoardBreeds({
+      levelNumber: get(levelNumber),
+      entryNonce,
+      discovered: discoveredSet(),
+      regionIds: distinctRegionIds(level),
+      size: level.size,
+      givenRegionId: level.regions[Math.floor(givenIdx[0] / level.size)][givenIdx[0] % level.size],
+      baseBreed: BASE_BREED
+    });
+    boardBreeds.set(map);
+    revealBreedId.set(null);
+    pendingSolve = false;
+    // givens are placed by the game (no card during the intro) but still discovered
+    const fresh: string[] = [];
+    for (const gi of givenIdx) {
+      const rid = level.regions[Math.floor(gi / level.size)][gi % level.size];
+      const bid = map[rid];
+      if (bid && discoverBreed(bid, get(levelNumber)) && !fresh.includes(bid)) fresh.push(bid);
+    }
+    levelNewBreeds.set(fresh);
+  } else {
+    boardBreeds.set({});
+    revealBreedId.set(null);
+    levelNewBreeds.set([]);
+  }
 
   hearts.set(HEARTS_MAX);
   autocatUsed.set(false);
@@ -404,6 +493,7 @@ export function commitCat(i: number): void {
   sfx.commit();
   vibrate(20);
 
+  if (maybeRevealAt(i, level)) return; // in-level "New cat!" card (§10.5); solve check deferred
   if (isSolved(level, get(cells))) void onWin();
 }
 
@@ -544,6 +634,7 @@ export async function useAutocat(): Promise<void> {
     errorTimer = setTimeout(() => errorCells.set([]), 600);
   }
   sfx.commit();
+  if (maybeRevealAt(i, level)) return; // autocat can also surface a new breed (§10.5)
   if (isSolved(level, get(cells))) void onWin();
 }
 

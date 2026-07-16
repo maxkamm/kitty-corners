@@ -4,6 +4,7 @@
   import Hearts from '../components/Hearts.svelte';
   import RuleChips from '../components/RuleChips.svelte';
   import LeaderboardPanel from '../components/LeaderboardPanel.svelte';
+  import NewCatCard from '../components/NewCatCard.svelte';
   import { leaderboardType } from '../lib/leaderboard';
   let wrapH = 0;
 
@@ -22,6 +23,7 @@
     celebrating,
     givenCells,
     introOrigin,
+    boardBreeds,
     elapsedSeconds,
     quitToMenu,
     useAutocat,
@@ -121,6 +123,7 @@
       celebrate={$celebrating}
       givens={$givenCells}
       introOrigin={$introOrigin}
+      breeds={$boardBreeds}
       maxPx={wrapH}
     />
   </div>
@@ -155,6 +158,9 @@
   {#if $adNotice}
     <div class="ad-toast" role="status">{$adNotice}</div>
   {/if}
+
+  <!-- In-level "New cat!" reveal (GDD §10.5); renders only when a new breed is committed -->
+  <NewCatCard />
 </section>
 
 <style>

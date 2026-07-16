@@ -9,6 +9,7 @@
   import type { LevelDef, CellState } from '../lib/types';
   import { tapCell, commitCat } from '../lib/game';
   import { catForRegion } from '../lib/skin';
+  import { spriteForBreed } from '../lib/collectionSprites';
 
   export let level: LevelDef;
   export let cells: CellState[];
@@ -29,6 +30,8 @@
   export let introOrigin = -1;
   /** available height from the parent, px (KC-1: board must fit short/landscape viewports) */
   export let maxPx = 0;
+  /** region id → breed id for the cat collection (GDD §10); empty = legacy region skin */
+  export let breeds: Record<string, string> = {};
 
   /** Desktop-adaptive sizing (KC-2): the board is the largest square that fits both
    *  its column (width, via `width:min(...,100%)`) and the available height (`maxPx`).
@@ -90,9 +93,12 @@
     return `var(--${level.colors?.[id] ?? id})`;
   }
 
-  /** cat sprite for the cell — the breed is tied to the region (art skin) */
+  /** cat sprite for the cell. With the collection feature (GDD §10) the breed comes
+   *  from `breeds[regionId]`; otherwise it falls back to the legacy region skin. */
   function catSrc(i: number, joyful: boolean): string {
-    const sprite = catForRegion(level.regions[Math.floor(i / n)][i % n]);
+    const regionId = level.regions[Math.floor(i / n)][i % n];
+    const breedId = breeds[regionId];
+    const sprite = (breedId && spriteForBreed(breedId)) || catForRegion(regionId);
     return joyful ? sprite.happy : sprite.idle;
   }
 
