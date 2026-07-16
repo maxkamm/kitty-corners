@@ -15,13 +15,18 @@
     RARITY_ORDER,
     breedById,
     markAllSeen,
-    rosterSize
+    rosterSize,
+    BASE_BREED
   } from '../lib/collection';
   import { spriteForBreed } from '../lib/collectionSprites';
   import { FEATURES } from '../lib/features';
 
   const dispatch = createEventDispatcher();
   const revealAll = !FEATURES.collection;
+
+  // Locked slots show the silhouette of the default cat (Tuxedo), tinted via a
+  // CSS mask so every undiscovered breed reads as the same neutral placeholder.
+  const silUrl = spriteForBreed(BASE_BREED)?.idle ?? '';
 
   let selected: string | null = null;
 
@@ -105,11 +110,7 @@
                   {#if unlocked && sprite}
                     <img src={sprite.idle} alt={b.name} draggable="false" />
                   {:else}
-                    <svg class="sil" viewBox="0 0 100 100" aria-hidden="true">
-                      <path d="M20 40 L29 6 L52 30 Z" />
-                      <path d="M80 40 L71 6 L48 30 Z" />
-                      <ellipse cx="50" cy="60" rx="35" ry="33" />
-                    </svg>
+                    <div class="sil" style="-webkit-mask-image:url({silUrl});mask-image:url({silUrl})" aria-hidden="true"></div>
                   {/if}
                 </div>
                 <div class="nm">{unlocked ? b.name : '???'}</div>
@@ -142,21 +143,15 @@
           {#if selUnlocked && selSprite}
             <img src={selSprite.happy} alt={selBreed.name} draggable="false" />
           {:else}
-            <svg class="sil" viewBox="0 0 100 100" aria-hidden="true">
-              <path d="M20 40 L29 6 L52 30 Z" />
-              <path d="M80 40 L71 6 L48 30 Z" />
-              <ellipse cx="50" cy="60" rx="35" ry="33" />
-            </svg>
+            <div class="sil" style="-webkit-mask-image:url({silUrl});mask-image:url({silUrl})" aria-hidden="true"></div>
           {/if}
         </div>
         <h3>{selUnlocked ? selBreed.name : '???'}</h3>
-        {#if selUnlocked}
+        {#if selUnlocked && selRec}
           <div class="stats">
             <div class="r"><span>Rarity</span><b style="color:{selInfo?.color}">{selInfo?.label}</b></div>
-            {#if selRec}
-              <div class="r"><span>Times seen</span><b>×{selRec.count}</b></div>
-              <div class="r"><span>First met</span><b>Level {selRec.firstLevel}</b></div>
-            {/if}
+            <div class="r"><span>Times seen</span><b>×{selRec.count}</b></div>
+            <div class="r"><span>First met</span><b>Level {selRec.firstLevel}</b></div>
           </div>
         {:else}
           <p class="locked-note">
@@ -324,10 +319,17 @@
   .cc.locked .cp {
     background: transparent;
   }
+  /* silhouette of the default cat, tinted via a CSS mask (ink-soft) */
   .sil {
-    width: 70%;
-    height: 70%;
-    fill: rgba(138, 128, 147, 0.32); /* ink-soft, soft — generic cat silhouette */
+    width: 78px;
+    height: 78px;
+    background: rgba(138, 128, 147, 0.34);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
   }
   .nm {
     font-family: 'Nunito', sans-serif;
@@ -418,8 +420,8 @@
     object-fit: contain;
   }
   .port .sil {
-    width: 60%;
-    height: 60%;
+    width: 132px;
+    height: 132px;
   }
   .dcard h3 {
     font-family: 'Baloo 2', sans-serif;
