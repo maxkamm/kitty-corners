@@ -86,6 +86,7 @@ export const ROSTER: Breed[] = [
   { id: 'mainecoon', name: 'Maine Coon', rarity: 'rare', hasArt: true },
   { id: 'scottishfold', name: 'Scottish Fold', rarity: 'rare', hasArt: true },
   { id: 'chartreux', name: 'Chartreux', rarity: 'rare', hasArt: true },
+  { id: 'singapura', name: 'Singapura', rarity: 'rare', hasArt: true },
   // Epic
   { id: 'sphynx', name: 'Sphynx', rarity: 'epic', hasArt: true },
   { id: 'bengal', name: 'Bengal', rarity: 'epic', hasArt: true },
@@ -96,8 +97,7 @@ export const ROSTER: Breed[] = [
   // Legendary
   { id: 'savannah', name: 'Savannah', rarity: 'legendary', hasArt: true },
   { id: 'egyptianmau', name: 'Egyptian Mau', rarity: 'legendary', hasArt: true },
-  { id: 'vankedisi', name: 'Van Kedisi', rarity: 'legendary', hasArt: true },
-  { id: 'singapura', name: 'Singapura', rarity: 'legendary', hasArt: true }
+  { id: 'vankedisi', name: 'Van Kedisi', rarity: 'legendary', hasArt: true }
 ];
 
 const BY_ID = new Map(ROSTER.map((b) => [b.id, b]));
