@@ -98,41 +98,55 @@ export function solveWithLog(level: LevelDef): SolverStep[] | null {
     return { kind: 'column', cells };
   };
 
+  // Place all singles of a given group kind: 'region' = a color's last remaining
+  // cell (top priority), 'line' = a row/column with one cell left (last-resort
+  // placement, kept so the whole level pool stays solvable).
+  const placeSingles = (which: 'region' | 'line'): boolean => {
+    let did = false;
+    for (const g of groups()) {
+      const isRegion = g.label.startsWith('region ');
+      if (which === 'region' ? !isRegion : isRegion) continue;
+      if (g.cells.length !== 1) continue;
+      const [r, c] = g.cells[0];
+      if (placed.has(key(r, c))) continue;
+      placed.add(key(r, c));
+      const gi = groupCells(g.label);
+      steps.push({
+        type: 'place',
+        cells: [{ row: r, col: c }],
+        reason: `Only one spot left in ${g.label}`,
+        subtype: 'single',
+        groupKind: gi.kind,
+        cause: gi.cells
+      });
+      const gone = eliminatedBy(ctx, r, c, cand);
+      if (gone.length) {
+        for (const cell of gone) cand.delete(key(cell.row, cell.col));
+        steps.push({
+          type: 'eliminate',
+          cells: gone,
+          reason: `A cat at that spot rules these out`,
+          subtype: 'shadow',
+          cause: [{ row: r, col: c }]
+        });
+      }
+      did = true;
+    }
+    return did;
+  };
+
   while (placed.size < n) {
     let progress = false;
 
-    // 1) single remaining candidate in a region/row/column → place a cat
-    for (const g of groups()) {
-      if (g.cells.length === 1) {
-        const [r, c] = g.cells[0];
-        if (placed.has(key(r, c))) continue;
-        placed.add(key(r, c));
-        const gi = groupCells(g.label);
-        steps.push({
-          type: 'place',
-          cells: [{ row: r, col: c }],
-          reason: `Only one spot left in ${g.label}`,
-          subtype: 'single',
-          groupKind: gi.kind,
-          cause: gi.cells
-        });
-        const gone = eliminatedBy(ctx, r, c, cand);
-        if (gone.length) {
-          for (const cell of gone) cand.delete(key(cell.row, cell.col));
-          steps.push({
-            type: 'eliminate',
-            cells: gone,
-            reason: `A cat at that spot rules these out`,
-            subtype: 'shadow',
-            cause: [{ row: r, col: c }]
-          });
-        }
-        progress = true;
-      }
-    }
-    if (progress) continue;
+    // Hint priority by type: color single -> confined -> lineset -> starve -> line single.
+    // A cat is placed only once its COLOR is down to one cell; a "looks-free" cell in
+    // another line is ruled out by the elimination techniques first, so the hint never
+    // says "place here" while a same-color neighbour is still open.
 
-    // 2) region confined to a single row/column → eliminate the rest of that line
+    // 1) color single: a region with one remaining cell -> place its cat
+    if (placeSingles('region')) continue;
+
+    // 2) region confined to a single row/column -> eliminate the rest of that line
     for (const name of regionNames) {
       const cells: [number, number][] = [];
       for (const k of cand) {
@@ -182,10 +196,77 @@ export function solveWithLog(level: LevelDef): SolverStep[] | null {
         }
       }
     }
-
     if (progress) continue;
 
-    // 3) starvation: a cat at X would leave some other group with no candidates → X is impossible
+    // 3) naked set: k colors confined to k lines -> other colors on those lines are out
+    {
+      const active: string[] = [];
+      const regCols = new Map<string, Set<number>>();
+      const regRows = new Map<string, Set<number>>();
+      for (const name of regionNames) {
+        const cs = new Set<number>();
+        const rs = new Set<number>();
+        for (const k of cand) {
+          const [r, c] = k.split(',').map(Number);
+          if (level.regions[r][c] === name && !placed.has(k)) {
+            cs.add(c);
+            rs.add(r);
+          }
+        }
+        if (cs.size > 0) {
+          active.push(name);
+          regCols.set(name, cs);
+          regRows.set(name, rs);
+        }
+      }
+
+      const applySet = (lineOf: Map<string, Set<number>>, axis: 'row' | 'column'): boolean => {
+        const m = active.length;
+        for (let mask = 1; mask < 1 << m; mask++) {
+          const set: string[] = [];
+          for (let i = 0; i < m; i++) if (mask & (1 << i)) set.push(active[i]);
+          if (set.length < 2 || set.length >= m) continue; // k=1 is 'confined'; k=m is trivial
+          const lines = new Set<number>();
+          for (const name of set) for (const l of lineOf.get(name)!) lines.add(l);
+          if (lines.size !== set.length) continue; // not a closed set
+          const inSet = new Set(set);
+          const gone: { row: number; col: number }[] = [];
+          for (const k of cand) {
+            const [r, c] = k.split(',').map(Number);
+            if (placed.has(k)) continue;
+            const line = axis === 'column' ? c : r;
+            if (lines.has(line) && !inSet.has(level.regions[r][c])) gone.push({ row: r, col: c });
+          }
+          if (!gone.length) continue;
+          for (const cell of gone) cand.delete(key(cell.row, cell.col));
+          const cause: { row: number; col: number }[] = [];
+          for (const k of cand) {
+            const [r, c] = k.split(',').map(Number);
+            if (!placed.has(k) && inSet.has(level.regions[r][c])) cause.push({ row: r, col: c });
+          }
+          const lineList = [...lines]
+            .sort((a, b) => a - b)
+            .map((l) => l + 1)
+            .join(', ');
+          steps.push({
+            type: 'eliminate',
+            cells: gone,
+            reason: `${set.length} colors fill ${axis}s ${lineList} — other cats there are out`,
+            subtype: 'lineset',
+            groupKind: axis,
+            cause
+          });
+          return true;
+        }
+        return false;
+      };
+
+      if (applySet(regCols, 'column')) progress = true;
+      else if (applySet(regRows, 'row')) progress = true;
+    }
+    if (progress) continue;
+
+    // 4) starvation: a cat at X would leave some other group with no candidates -> X is impossible
     {
       const activeGroups = groups().filter((g) => g.cells.length > 0);
       const gone: { row: number; col: number }[] = [];
@@ -218,8 +299,13 @@ export function solveWithLog(level: LevelDef): SolverStep[] | null {
         progress = true;
       }
     }
+    if (progress) continue;
 
-    if (!progress) return null; // needs harder techniques than the solver knows
+    // 5) line single: a row/column with one remaining cell -> place (last resort)
+    if (placeSingles('line')) continue;
+
+    return null; // needs harder techniques than the solver knows
   }
+
   return steps;
 }

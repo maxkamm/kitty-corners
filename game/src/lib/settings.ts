@@ -1,12 +1,14 @@
 /** User settings (GDD §5.3), persisted. Pattern marks render is post-MVP (§8) — toggle stored only. */
 import { writable } from 'svelte/store';
 import { storage } from './storage';
-import { setSoundEnabled } from './audio';
+import { setSoundEnabled, setMusicEnabled } from './audio';
 import { setVibrationEnabled } from './haptics';
 
 export const soundOn = writable<boolean>(storage.get('sound', true));
 export const vibrationOn = writable<boolean>(storage.get('vibration', false));
 export const patternMarksOn = writable<boolean>(storage.get('patternMarks', false));
+/** Background music setting — independent of Sound (SFX). */
+export const musicOn = writable<boolean>(storage.get('music', true));
 
 /**
  * Wire up settings persistence. Called once from boot() AFTER storage.hydrate()
@@ -18,6 +20,7 @@ export function initSettingsPersistence(): void {
   soundOn.set(storage.get('sound', true));
   vibrationOn.set(storage.get('vibration', false));
   patternMarksOn.set(storage.get('patternMarks', false));
+  musicOn.set(storage.get('music', true));
 
   soundOn.subscribe((v) => {
     storage.set('sound', v);
@@ -28,6 +31,10 @@ export function initSettingsPersistence(): void {
     setVibrationEnabled(v);
   });
   patternMarksOn.subscribe((v) => storage.set('patternMarks', v));
+  musicOn.subscribe((v) => {
+    storage.set('music', v);
+    setMusicEnabled(v);
+  });
 }
 
 /**

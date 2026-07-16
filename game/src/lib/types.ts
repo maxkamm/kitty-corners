@@ -31,9 +31,11 @@ export interface SolverStep {
   /**
    * Fine-grained kind of the deduction, for the teaching hint (Р-58):
    * single — only free cell in a group; shadow — cells ruled out by a placed cat;
-   * confined — a region locked to one line; starve — a cat there would empty another group.
+   * confined — a region locked to one line; lineset — k colors locked into k lines
+   * (rows/columns), so other cats on those lines are out; starve — a cat there would
+   * empty another group.
    */
-  subtype?: 'single' | 'shadow' | 'confined' | 'starve';
+  subtype?: 'single' | 'shadow' | 'confined' | 'lineset' | 'starve';
   /** which group forced a 'single' placement — picks the hint noun (row/column/color). */
   groupKind?: 'region' | 'row' | 'column';
   /** cells explaining WHY the step holds (the line/region/cat to highlight, Р-57). */
