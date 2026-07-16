@@ -31,6 +31,11 @@
   }}
 >
   <div class="sheet">
+    <button class="close" aria-label="Close" on:click={() => dispatch('close')}>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+      </svg>
+    </button>
     <h2><svg class="cup"><use href="#ic-trophy" /></svg> Leaderboard</h2>
 
     {#if failed}
@@ -55,7 +60,6 @@
     {/if}
 
     <div class="mine">Your total · <b>{fmtNum($totalScore)}</b></div>
-    <button class="cta" on:click={() => dispatch('close')}>Close</button>
   </div>
 </div>
 
@@ -83,6 +87,31 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    position: relative;
+  }
+  /* squircle close (matches the Collection screen; pressability §6.7) */
+  .close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-bottom: 4px solid var(--edge);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.07s;
+  }
+  .close:active {
+    transform: translateY(2px);
+  }
+  .close svg {
+    width: 20px;
+    height: 20px;
   }
   .sheet h2 {
     font-family: 'Baloo 2', sans-serif;
@@ -183,8 +212,5 @@
   }
   .mine b {
     color: var(--ink);
-  }
-  .sheet .cta {
-    padding: 13px;
   }
 </style>

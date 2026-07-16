@@ -26,6 +26,11 @@
   }}
 >
   <div class="sheet">
+    <button class="close" aria-label="Close" on:click={close}>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+      </svg>
+    </button>
     {#if confirmRestart}
       <h2>Restart level?</h2>
       <p class="how">Your marks and hearts will reset. Your streak stays safe.</p>
@@ -47,7 +52,6 @@
         <button class="set-row center danger-row" on:click={() => (confirmRestart = true)}>Restart level</button>
         <button class="link-quiet exit" on:click={quitToMenu}>Quit to menu</button>
       {/if}
-      <button class="cta" on:click={close}>Continue</button>
     {/if}
   </div>
 
@@ -77,6 +81,31 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    position: relative;
+  }
+  /* squircle close (matches the Collection screen; pressability §6.7) */
+  .close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-bottom: 4px solid var(--edge);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.07s;
+  }
+  .close:active {
+    transform: translateY(2px);
+  }
+  .close svg {
+    width: 20px;
+    height: 20px;
   }
   .sheet h2 {
     font-family: 'Baloo 2', sans-serif;
