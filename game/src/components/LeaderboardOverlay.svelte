@@ -50,7 +50,7 @@
             {#if e.photo}
               <img class="avatar" src={e.photo} alt="" loading="lazy" />
             {:else}
-              <span class="avatar ph"><svg><use href="#ic-paw" /></svg></span>
+              <span class="avatar ph"><svg><use href="#ic-cathead-line" /></svg></span>
             {/if}
             <span class="name">{e.name}</span>
             <span class="pts">{fmtNum(e.score)}</span>
@@ -175,8 +175,8 @@
     color: var(--accent);
   }
   .avatar {
-    width: 26px;
-    height: 26px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     flex: none;
     object-fit: cover;
@@ -186,10 +186,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
   }
   .avatar.ph svg {
-    width: 14px;
-    height: 14px;
+    width: 30px;
+    height: 30px;
     color: var(--accent);
   }
   .name {

@@ -463,17 +463,25 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       gap: 18px;
       justify-self: end;
-      align-self: center;
+      /* fill the row height (bounded) so the leaderboard can scroll inside
+         instead of growing and breaking the layout when many players show up */
+      align-self: stretch;
+      min-height: 0;
       width: 100%;
       max-width: 260px;
     }
     .lb-slot {
       display: block;
       width: 100%;
+      flex: 0 1 auto;
+      min-height: 0;
+      overflow: hidden;
     }
     .game-bottom {
+      flex: none;
       flex-direction: row;
       gap: 24px;
       padding-bottom: 0;
