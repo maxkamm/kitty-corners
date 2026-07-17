@@ -28,4 +28,30 @@ export interface SolverStep {
   /** cells affected: for 'place' — the cat cell; for 'eliminate' — crossed-out cells */
   cells: { row: number; col: number }[];
   reason: string;
+  /**
+   * Fine-grained kind of the deduction, for the teaching hint (Р-58):
+   * single — only free cell in a group; shadow — cells ruled out by a placed cat;
+   * confined — a region locked to one line; lineset — k colors locked into k lines
+   * (rows/columns), so other cats on those lines are out; starve — a cat there would
+   * empty another group.
+   */
+  subtype?: 'single' | 'shadow' | 'confined' | 'lineset' | 'starve';
+  /** which group forced a 'single' placement — picks the hint noun (row/column/color). */
+  groupKind?: 'region' | 'row' | 'column';
+  /** cells explaining WHY the step holds (the line/region/cat to highlight, Р-57). */
+  cause?: { row: number; col: number }[];
+}
+
+/** Kind of hint shown to the player (§5.2). */
+export type HintKind = 'place' | 'eliminate' | 'soft';
+
+/** A ready-to-render teaching hint: text + which cells are the target vs the reason. */
+export interface HintView {
+  kind: HintKind;
+  /** player-facing explanation in the game's voice (Р-60) */
+  text: string;
+  /** cells to act on: place → the cat cell; eliminate → cells to mark with paws */
+  targets: number[];
+  /** cells that explain why (row/column/region/neighbouring cat), highlighted quietly */
+  cause: number[];
 }

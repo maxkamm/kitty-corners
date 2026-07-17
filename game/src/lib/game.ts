@@ -3,9 +3,9 @@
  * Svelte stores; persistence via storage abstraction.
  */
 import { writable, derived, get } from 'svelte/store';
-import type { LevelDef, CellState, Screen, SolverStep } from './types';
+import type { LevelDef, CellState, Screen, SolverStep, HintView } from './types';
 import { storage } from './storage';
-import { ads, adActive } from './ads';
+import { ads, adActive, rewardedSupported } from './ads';
 import { platformPaused, sendPlatformMessage } from './platform';
 import { analytics } from './analytics';
 import { sfx } from './audio';
@@ -13,6 +13,14 @@ import { vibrate } from './haptics';
 import { solveWithLog } from './solver';
 import { computeScore } from './score';
 import { submitScore, queueGain } from './leaderboard';
+import { FEATURES } from './features';
+import {
+  assignBoardBreeds,
+  discoverBreed,
+  discoveredSet,
+  initCollectionPersistence,
+  BASE_BREED
+} from './collection';
 import levelsData from '../data/levels.json';
 
 /** On-disk format stores each region row as a compact string ("aabbbc"). */
@@ -36,11 +44,30 @@ export const tutorialDone = writable<boolean>(storage.get('tutorialDone', false)
 /** Cumulative score across all won levels (Р-42) — the future leaderboard value. */
 export const totalScore = writable<number>(storage.get('totalScore', 0));
 
-levelNumber.subscribe((v) => storage.set('level', v));
-streak.subscribe((v) => storage.set('streak', v));
-bestStreak.subscribe((v) => storage.set('bestStreak', v));
-tutorialDone.subscribe((v) => storage.set('tutorialDone', v));
-totalScore.subscribe((v) => storage.set('totalScore', v));
+/**
+ * Wire up progress persistence. Called once from boot() AFTER storage.hydrate()
+ * resolves. The stores above are read at module-eval time, but in a single-file
+ * bundle that happens before the async hydrate() populates the cache (the
+ * dynamic import of App no longer defers evaluation, and bridge storage is
+ * async). So we (1) re-apply the now-hydrated values, then (2) attach the
+ * auto-save subscriptions — attaching them only now means the initial default
+ * values never get written back over the saved data. Without this, progress is
+ * wiped on every reload.
+ */
+export function initGamePersistence(): void {
+  levelNumber.set(storage.get('level', 1));
+  streak.set(storage.get('streak', 0));
+  bestStreak.set(storage.get('bestStreak', 0));
+  tutorialDone.set(storage.get('tutorialDone', false));
+  totalScore.set(storage.get('totalScore', 0));
+
+  levelNumber.subscribe((v) => storage.set('level', v));
+  streak.subscribe((v) => storage.set('streak', v));
+  bestStreak.subscribe((v) => storage.set('bestStreak', v));
+  tutorialDone.subscribe((v) => storage.set('tutorialDone', v));
+  totalScore.subscribe((v) => storage.set('totalScore', v));
+  initCollectionPersistence(); // cat collection (GDD §10) — same deferred wiring
+}
 
 // ---------- session ----------
 export const screen = writable<Screen>('main');
@@ -50,8 +77,14 @@ export const cells = writable<CellState[]>([]);
 export const autocatUsed = writable(false);
 /** cell indices flashing as error */
 export const errorCells = writable<number[]>([]);
-/** cell indices highlighted by hint */
+/** cell indices highlighted by hint (the TARGET layer: place cell / cells to mark) */
 export const hintCells = writable<number[]>([]);
+/** cell indices highlighted as the hint's REASON (quiet secondary layer, §5.2) */
+export const hintCause = writable<number[]>([]);
+/** the current teaching hint to render under the board, or null (§5.2) */
+export const hint = writable<HintView | null>(null);
+/** first (free) hint of the level already used → the next one is rewarded (Р-56) */
+export const hintFreeUsed = writable(false);
 /** victory time, seconds */
 export const winTime = writable(0);
 /** board celebration in progress (joy wave before the Victory screen) */
@@ -68,6 +101,14 @@ export const winStreak = writable(0);
 export const winLevel = writable(0);
 /** score earned for the level just won (victory card, Р-42) */
 export const winScore = writable(0);
+
+// ---------- cat collection (GDD §10, post-MVP; gated by FEATURES.collection) ----------
+/** region id → breed id for the current board (empty when the feature is off). */
+export const boardBreeds = writable<Record<string, string>>({});
+/** breed id to render in the in-level "New cat!" card, or null (Р-47). */
+export const revealBreedId = writable<string | null>(null);
+/** breed ids first discovered on the current level — Victory recap block (§10.5). */
+export const levelNewBreeds = writable<string[]>([]);
 
 // ---------- per-run scoring counters (Р-42) ----------
 /** wrong commits this run */
@@ -120,6 +161,9 @@ settingsOpen.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
 settingsOpen.subscribe((v) => {
   if (get(screen) === 'game') sendPlatformMessage(v ? 'level_paused' : 'level_resumed');
 });
+settingsOpen.subscribe((v) => {
+  if (v) clearHint(); // pausing dismisses any open hint (§5.1)
+});
 adActive.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
 platformPaused.subscribe((v) => (v ? pauseTimer() : resumeTimer()));
 screen.subscribe((v) => (v === 'game' ? resumeTimer() : pauseTimer()));
@@ -128,8 +172,11 @@ let solverLog: SolverStep[] | null = null;
 /** Indices of the current level's unique-solution cats (commit target check). */
 let solutionSet = new Set<number>();
 let errorTimer: ReturnType<typeof setTimeout> | undefined;
-let hintTimer: ReturnType<typeof setTimeout> | undefined;
 let outcomeTimer: ReturnType<typeof setTimeout> | undefined;
+/** Increments on each fresh level entry → seeds the breed roll (stable on restart). */
+let entryNonce = 0;
+/** true when the in-level reveal card is up and that commit already solved the level. */
+let pendingSolve = false;
 
 /**
  * Difficulty curve (Р-38): levels 1..N walk the pool in curve order;
@@ -230,6 +277,45 @@ function isSolved(level: LevelDef, board: CellState[]): boolean {
   return count === n;
 }
 
+// ---------- cat collection helpers (GDD §10, gated by FEATURES.collection) ----------
+function distinctRegionIds(level: LevelDef): string[] {
+  const s = new Set<string>();
+  for (const row of level.regions) for (const id of row) s.add(id);
+  return [...s];
+}
+
+/**
+ * If the just-placed cell reveals a NEW breed (feature on), record the discovery,
+ * raise the in-level "New cat!" card and pause input + timer; the caller returns and
+ * the solve check is deferred to dismissReveal() (§10.5). Returns true when a card
+ * was shown; false when the feature is off or the breed is already known.
+ */
+function maybeRevealAt(i: number, level: LevelDef): boolean {
+  if (!FEATURES.collection) return false;
+  const rid = level.regions[Math.floor(i / level.size)][i % level.size];
+  const bid = get(boardBreeds)[rid];
+  if (!bid) return false;
+  if (!discoverBreed(bid, get(levelNumber))) return false; // already known → no card
+  levelNewBreeds.update((a) => (a.includes(bid) ? a : [...a, bid]));
+  pendingSolve = isSolved(level, get(cells));
+  revealBreedId.set(bid);
+  inputLocked = true;
+  pauseTimer(); // reveal time is excluded from "Your time" (KC-5)
+  return true;
+}
+
+/** Dismiss the in-level "New cat!" card (tap / auto-timeout); resume play (§10.5). */
+export function dismissReveal(): void {
+  if (get(revealBreedId) === null) return;
+  revealBreedId.set(null);
+  inputLocked = false;
+  resumeTimer();
+  if (pendingSolve) {
+    pendingSolve = false;
+    if (isSolved(get(currentLevel), get(cells))) void onWin();
+  }
+}
+
 // ---------- level lifecycle ----------
 /** Level intro (Р-36): given cat pops in, then X marks ripple out from it. */
 const INTRO_MS = 1400;
@@ -258,9 +344,39 @@ export function loadLevel(): void {
   givenCells.set(givenIdx);
   cells.set(board);
 
+  // cat collection (GDD §10): roll the board's breeds, discover givens silently
+  if (FEATURES.collection) {
+    entryNonce++;
+    const map = assignBoardBreeds({
+      levelNumber: get(levelNumber),
+      entryNonce,
+      discovered: discoveredSet(),
+      regionIds: distinctRegionIds(level),
+      size: level.size,
+      givenRegionId: level.regions[Math.floor(givenIdx[0] / level.size)][givenIdx[0] % level.size],
+      baseBreed: BASE_BREED
+    });
+    boardBreeds.set(map);
+    revealBreedId.set(null);
+    pendingSolve = false;
+    // givens are placed by the game (no card during the intro) but still discovered
+    const fresh: string[] = [];
+    for (const gi of givenIdx) {
+      const rid = level.regions[Math.floor(gi / level.size)][gi % level.size];
+      const bid = map[rid];
+      if (bid && discoverBreed(bid, get(levelNumber)) && !fresh.includes(bid)) fresh.push(bid);
+    }
+    levelNewBreeds.set(fresh);
+  } else {
+    boardBreeds.set({});
+    revealBreedId.set(null);
+    levelNewBreeds.set([]);
+  }
+
   hearts.set(HEARTS_MAX);
   autocatUsed.set(false);
-  hintCells.set([]);
+  clearHint();
+  hintFreeUsed.set(false);
   errorCells.set([]);
   runErrors = 0;
   runXCells = new Set();
@@ -317,6 +433,7 @@ export function skipTutorial(): void {
 /** Tap: toggle X mark; tap on a cat removes it. */
 export function tapCell(i: number): void {
   if (inputLocked) return;
+  clearHint(); // any move dismisses the current hint (§5.1)
   if (get(givenCells).includes(i)) return; // pre-placed cats are locked (Р-36)
   cells.update((b) => {
     const next = b.slice();
@@ -332,6 +449,7 @@ export function tapCell(i: number): void {
 /** Long-press commit: place a cat; a rule-breaking commit costs a heart (GDD §2). */
 export function commitCat(i: number): void {
   if (inputLocked) return;
+  clearHint(); // any move dismisses the current hint (§5.1)
   const level = get(currentLevel);
   const board = get(cells);
 
@@ -375,6 +493,7 @@ export function commitCat(i: number): void {
   sfx.commit();
   vibrate(20);
 
+  if (maybeRevealAt(i, level)) return; // in-level "New cat!" card (§10.5); solve check deferred
   if (isSolved(level, get(cells))) void onWin();
 }
 
@@ -515,43 +634,203 @@ export async function useAutocat(): Promise<void> {
     errorTimer = setTimeout(() => errorCells.set([]), 600);
   }
   sfx.commit();
+  if (maybeRevealAt(i, level)) return; // autocat can also surface a new breed (§10.5)
   if (isSolved(level, get(cells))) void onWin();
 }
 
-/** Hint: highlight the next logical step from the solver log. */
-export async function useHint(): Promise<void> {
-  if (inputLocked) return;
-  const ok = await ads.showRewarded();
-  if (!ok) return;
-  const level = get(currentLevel);
-  const board = get(cells);
-  const steps = solverLog ?? [];
-  let targets: number[] = [];
-  for (const step of steps) {
-    if (step.type === 'place') {
-      const i = idx(level, step.cells[0].row, step.cells[0].col);
-      if (board[i] !== 'cat') {
-        targets = [i];
-        break;
+/** Dismiss the current hint (banner + both highlight layers). */
+export function clearHint(): void {
+  hint.set(null);
+  hintCells.set([]);
+  hintCause.set([]);
+}
+
+function toIdx(level: LevelDef, cs: { row: number; col: number }[]): number[] {
+  return cs.map((c) => idx(level, c.row, c.col));
+}
+
+/** Player-facing explanation in the game's voice, by step subtype (Р-60). */
+function hintText(step: SolverStep): string {
+  switch (step.subtype) {
+    case 'single': {
+      const where =
+        step.groupKind === 'row'
+          ? 'this row'
+          : step.groupKind === 'column'
+            ? 'this column'
+            : 'this color';
+      return `Only one free cell left in ${where} — the cat goes here.`;
+    }
+    case 'shadow':
+      return `A cat here holds its row, column, color and touching cells — mark these with paws.`;
+    case 'confined':
+      return `This color fits only along one line — the rest of that line is out, mark it with paws.`;
+    case 'lineset': {
+      const axis = step.groupKind === 'row' ? 'row' : 'column';
+      const k = new Set((step.cause ?? []).map((c) => (axis === 'row' ? c.row : c.col))).size;
+      const lines = axis === 'row' ? 'rows' : 'columns';
+      return `These ${k} colors fill ${k} ${lines} — no other cat fits there, mark with paws.`;
+    }
+    case 'starve':
+      return `A cat here would leave another group with nowhere to go — so it's out, mark with paws.`;
+    default:
+      return step.type === 'place'
+        ? `The cat belongs here.`
+        : `These cells are out — mark them with paws.`;
+  }
+}
+
+/**
+ * Attentiveness hint (Р-62): the player placed a cat but forgot some of the paws it
+ * rules out. Returns the missing cells around the FIRST such cat, grouped by the rule
+ * that forbids them (row/column, then touching, then color) — each with its own text.
+ * Every cat on the board is a correct solution cat (commits are validated), so its
+ * surrounding cells are always safe to mark.
+ */
+export function attentivenessHint(level: LevelDef, board: CellState[]): HintView | null {
+  const n = level.size;
+  const at = (r: number, c: number): number => r * n + c;
+  for (let ci = 0; ci < board.length; ci++) {
+    if (board[ci] !== 'cat') continue;
+    const cr = Math.floor(ci / n);
+    const cc = ci % n;
+    const rowcol: number[] = [];
+    const diag: number[] = [];
+    const region: number[] = [];
+    for (let r = 0; r < n; r++)
+      for (let c = 0; c < n; c++) {
+        const i = at(r, c);
+        if (i === ci || board[i] !== 'empty') continue;
+        if (r === cr || c === cc) rowcol.push(i);
+        else if (Math.abs(r - cr) <= 1 && Math.abs(c - cc) <= 1) diag.push(i);
+        else if (level.regions[r][c] === level.regions[cr][cc]) region.push(i);
       }
-    } else {
-      const missing = step.cells
-        .map((c) => idx(level, c.row, c.col))
-        .filter((i) => board[i] === 'empty');
-      if (missing.length) {
-        targets = missing;
-        break;
-      }
+    if (rowcol.length)
+      return {
+        kind: 'eliminate',
+        text: `One cat per row and column — add the missing paws here.`,
+        targets: rowcol,
+        cause: []
+      };
+    if (diag.length)
+      return {
+        kind: 'eliminate',
+        text: `Cats can't sit next to each other — add paws around this cat.`,
+        targets: diag,
+        cause: []
+      };
+    if (region.length)
+      return {
+        kind: 'eliminate',
+        text: `One cat per color — add the missing paws in this color.`,
+        targets: region,
+        cause: []
+      };
+  }
+  return null;
+}
+
+/**
+ * Build the next teaching hint (§5.2) by type priority (Р-62):
+ *   1. color single  — a color with one empty cell left → place its cat
+ *   2. attentiveness — a placed cat missing surrounding paws → mark them
+ *   3. confined / lineset / starve — the next elimination from the solver log
+ *   4. line single   — a row/column with one empty cell left → place its cat
+ *   5. soft fallback — never a silent no-op (KC-6)
+ * Placements are derived from the board (so a color single only fires once the color
+ * is genuinely down to one cell — never while a same-color neighbour is still open).
+ */
+function buildHint(level: LevelDef, board: CellState[]): HintView {
+  const n = level.size;
+  const at = (r: number, c: number): number => r * n + c;
+
+  const groupSingle = (cells: number[], where: string): HintView | null => {
+    if (cells.some((i) => board[i] === 'cat')) return null;
+    const empties = cells.filter((i) => board[i] === 'empty');
+    if (empties.length === 1 && solutionSet.has(empties[0]))
+      return {
+        kind: 'place',
+        text: `Only one free cell left in ${where} — the cat goes here.`,
+        targets: [empties[0]],
+        // cause excludes the target so the target keeps its own strong highlight
+        cause: cells.filter((i) => i !== empties[0])
+      };
+    return null;
+  };
+
+  // 1) color single
+  const regionCells = new Map<string, number[]>();
+  for (let r = 0; r < n; r++)
+    for (let c = 0; c < n; c++) {
+      const id = level.regions[r][c];
+      let arr = regionCells.get(id);
+      if (!arr) regionCells.set(id, (arr = []));
+      arr.push(at(r, c));
+    }
+  for (const cells of regionCells.values()) {
+    const h = groupSingle(cells, 'this color');
+    if (h) return h;
+  }
+
+  // 2) attentiveness
+  const att = attentivenessHint(level, board);
+  if (att) return att;
+
+  // 3) advanced eliminations from the solver log (confined → lineset → starve)
+  for (const step of solverLog ?? []) {
+    if (
+      step.type !== 'eliminate' ||
+      !(step.subtype === 'confined' || step.subtype === 'lineset' || step.subtype === 'starve')
+    )
+      continue;
+    const missing = step.cells.map((c) => at(c.row, c.col)).filter((i) => board[i] === 'empty');
+    if (missing.length) {
+      const cause = toIdx(level, step.cause ?? []).filter((c) => !missing.includes(c));
+      return { kind: 'eliminate', text: hintText(step), targets: missing, cause };
     }
   }
-  // fallback: first solution cell without a cat
-  if (!targets.length) {
-    const t = level.solution.find((s) => board[idx(level, s.row, s.col)] !== 'cat');
-    if (t) targets = [idx(level, t.row, t.col)];
+
+  // 4) line single (rows, then columns)
+  for (let r = 0; r < n; r++) {
+    const h = groupSingle(
+      Array.from({ length: n }, (_, c) => at(r, c)),
+      'this row'
+    );
+    if (h) return h;
   }
+  for (let c = 0; c < n; c++) {
+    const h = groupSingle(
+      Array.from({ length: n }, (_, r) => at(r, c)),
+      'this column'
+    );
+    if (h) return h;
+  }
+
+  // 5) fallback: point at the first solution cell still without a cat (never a silent no-op, KC-6)
+  const t = level.solution.find((s) => board[at(s.row, s.col)] !== 'cat');
+  const targets = t ? [at(t.row, t.col)] : [];
+  return { kind: 'soft', text: `A cat is hiding somewhere here.`, targets, cause: [] };
+}
+
+/**
+ * Hint (Р-56..Р-61): first hint of the level is free, later ones are rewarded;
+ * on platforms without rewarded ads all hints stay free. Shows a teaching banner
+ * under the board plus a target/cause highlight — never a silent no-op (KC-6).
+ */
+export async function useHint(): Promise<void> {
+  if (inputLocked) return;
+  const needAd = get(hintFreeUsed) && get(rewardedSupported);
+  if (needAd) {
+    const ok = await ads.showRewarded();
+    if (!ok) return; // the ads adapter surfaces its own "ad unavailable" notice
+  }
+  const level = get(currentLevel);
+  const view = buildHint(level, get(cells));
+  hintFreeUsed.set(true);
   runHints++;
-  analytics.track('hint', { level: get(levelNumber) });
-  hintCells.set(targets);
-  clearTimeout(hintTimer);
-  hintTimer = setTimeout(() => hintCells.set([]), 2500);
+  analytics.track('hint', { level: get(levelNumber), kind: view.kind, free: !needAd });
+  hint.set(view);
+  hintCells.set(view.targets);
+  hintCause.set(view.cause);
+  // no auto-hide: the banner stays until the player clicks anywhere (dismissed from the UI, §5.1)
 }

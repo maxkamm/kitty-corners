@@ -4,6 +4,7 @@
   import Hearts from '../components/Hearts.svelte';
   import RuleChips from '../components/RuleChips.svelte';
   import LeaderboardPanel from '../components/LeaderboardPanel.svelte';
+  import NewCatCard from '../components/NewCatCard.svelte';
   import { leaderboardType } from '../lib/leaderboard';
   let wrapH = 0;
 
@@ -14,15 +15,20 @@
     hearts,
     errorCells,
     hintCells,
+    hintCause,
+    hint,
+    hintFreeUsed,
     settingsOpen,
     autocatUsed,
     celebrating,
     givenCells,
     introOrigin,
+    boardBreeds,
     elapsedSeconds,
     quitToMenu,
     useAutocat,
-    useHint
+    useHint,
+    clearHint
   } from '../lib/game';
   import { rewardedSupported, adNotice } from '../lib/ads';
 
@@ -35,6 +41,28 @@
     tick = setInterval(() => (seconds = elapsedSeconds()), 500);
   });
   onDestroy(() => clearInterval(tick));
+
+  /* Hint banner stays until the player clicks ANYWHERE (§5.1). While a hint is shown we
+     attach a one-shot global pointerdown listener; it is armed on the next tick so the
+     very click that opened the hint doesn't instantly dismiss it. */
+  let hintDismiss: (() => void) | null = null;
+  $: syncHintDismiss($hint);
+  function syncHintDismiss(h: unknown): void {
+    if (typeof window === 'undefined') return;
+    if (h && !hintDismiss) {
+      const handler = (): void => clearHint();
+      hintDismiss = handler;
+      setTimeout(() => {
+        if (hintDismiss === handler) window.addEventListener('pointerdown', handler, true);
+      }, 0);
+    } else if (!h && hintDismiss) {
+      window.removeEventListener('pointerdown', hintDismiss, true);
+      hintDismiss = null;
+    }
+  }
+  onDestroy(() => {
+    if (hintDismiss) window.removeEventListener('pointerdown', hintDismiss, true);
+  });
 
   function fmtTime(s: number): string {
     const m = Math.floor(s / 60);
@@ -68,7 +96,22 @@
     </button>
   </div>
 
-  <div class="rules-slot"><RuleChips /></div>
+  <div class="rules-slot">
+    <RuleChips />
+    {#if $hint}
+      <div class="hint-banner hint-{$hint.kind}" role="status">
+        <svg class="hb-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <use href={$hint.kind === 'place' ? '#ic-cathead-line' : '#ic-paw'} />
+        </svg>
+        <p>{$hint.text}</p>
+        <button class="hb-close" aria-label="Dismiss hint" on:click={() => clearHint()}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+    {/if}
+  </div>
 
   <div class="board-wrap" bind:clientHeight={wrapH}>
     <Board
@@ -76,9 +119,11 @@
       cells={$cells}
       errorCells={$errorCells}
       hintCells={$hintCells}
+      causeCells={$hintCause}
       celebrate={$celebrating}
       givens={$givenCells}
       introOrigin={$introOrigin}
+      breeds={$boardBreeds}
       maxPx={wrapH}
     />
   </div>
@@ -88,8 +133,8 @@
     {#if $leaderboardType === 'in_game'}
       <div class="lb-slot"><LeaderboardPanel /></div>
     {/if}
-    {#if $rewardedSupported}
-      <div class="game-bottom">
+    <div class="game-bottom">
+      {#if $rewardedSupported}
         <button
           class="round-btn"
           aria-label="Place one cat for me"
@@ -99,17 +144,23 @@
           <svg viewBox="0 0 24 24"><use href="#ic-cathead-line" /></svg>
           <span class="badge"><svg width="9" height="9" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg></span>
         </button>
-        <button class="round-btn" aria-label="Hint: next logical step" on:click={() => useHint()}>
-          <svg viewBox="0 0 24 24"><use href="#ic-bulb-line" /></svg>
+      {/if}
+      <!-- Hint always available: first is free, later ones rewarded (Р-56); badge appears once free is used -->
+      <button class="round-btn" aria-label="Hint: next logical step" on:click={() => useHint()}>
+        <svg viewBox="0 0 24 24"><use href="#ic-bulb-line" /></svg>
+        {#if $hintFreeUsed && $rewardedSupported}
           <span class="badge"><svg width="9" height="9" viewBox="0 0 24 24"><use href="#ic-play-ad" /></svg></span>
-        </button>
-      </div>
-    {/if}
+        {/if}
+      </button>
+    </div>
   </div>
 
   {#if $adNotice}
     <div class="ad-toast" role="status">{$adNotice}</div>
   {/if}
+
+  <!-- In-level "New cat!" reveal (GDD §10.5); renders only when a new breed is committed -->
+  <NewCatCard />
 </section>
 
 <style>
@@ -118,7 +169,9 @@
     inset: 0;
     display: flex;
     flex-direction: column;
-    padding: 16px 14px 18px;
+    /* base spacing, expanded to clear device safe areas (notch / rounded corners) */
+    padding: max(16px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+      max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
     gap: 12px;
     background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
   }
@@ -203,6 +256,9 @@
     background: var(--line);
     border-radius: 1px;
     flex: none;
+  }
+  .rules-slot {
+    position: relative;
   }
   .board-wrap {
     display: flex;
@@ -298,12 +354,82 @@
       animation: none;
     }
   }
+  /* Teaching hint banner (§5.1): overlays the three rule chips at the top of the board */
+  .hint-banner {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    color: var(--ink);
+    border-radius: 16px;
+    border-left: 5px solid var(--accent);
+    padding: 11px 12px 11px 13px;
+    box-shadow: var(--shadow-pop, 0 8px 20px rgba(125, 74, 73, 0.22));
+    animation: hint-banner-in 0.24s ease both;
+    z-index: 6;
+  }
+  /* place hints read as a "go here" cue → cat-head accent; eliminate stays warm (paws) */
+  .hint-banner.hint-place {
+    border-left-color: var(--accent);
+  }
+  .hint-banner .hb-icon {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    color: var(--accent);
+  }
+  .hint-banner p {
+    margin: 0;
+    flex: 1;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 13.5px;
+    line-height: 1.3;
+  }
+  .hint-banner .hb-close {
+    flex: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    opacity: 0.55;
+    background: transparent;
+  }
+  .hint-banner .hb-close:active {
+    opacity: 1;
+  }
+  .hint-banner .hb-close svg {
+    width: 16px;
+    height: 16px;
+  }
+  @keyframes hint-banner-in {
+    from { opacity: 0; transform: translate(-50%, -8px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hint-banner {
+      animation: none;
+    }
+  }
   /* ---- Desktop / landscape layout (Playgama desktop reqs): board centered,
      HUD spread across the horizontal space. Also fixes phone-landscape (QA KC-1). ---- */
   @media (min-aspect-ratio: 1 / 1) {
     .game {
       display: grid;
-      grid-template-columns: minmax(150px, 1fr) minmax(280px, 440px) minmax(150px, 1fr);
+      /* No fr on the side columns: otherwise they would eat all the free space and
+         pin the board at its 320px min. Fixed-range tracks + centered grid let the
+         board grow to fill the middle column on large displays (KC-2). */
+      grid-template-columns: minmax(150px, 240px) minmax(320px, 640px) minmax(150px, 240px);
+      justify-content: center;
       grid-template-rows: auto 1fr;
       grid-template-areas:
         "top   top   top"
@@ -311,7 +437,8 @@
       align-items: center;
       column-gap: 24px;
       row-gap: 10px;
-      padding: 18px 28px 22px;
+      padding: max(18px, env(safe-area-inset-top)) max(28px, env(safe-area-inset-right))
+        max(22px, env(safe-area-inset-bottom)) max(28px, env(safe-area-inset-left));
     }
     .game-top {
       grid-area: top;
@@ -324,7 +451,7 @@
       grid-area: rules;
       justify-self: start;
       width: 100%;
-      max-width: 240px;
+      max-width: 260px;
     }
     .board-wrap {
       grid-area: board;
@@ -336,17 +463,25 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       gap: 18px;
       justify-self: end;
-      align-self: center;
+      /* fill the row height (bounded) so the leaderboard can scroll inside
+         instead of growing and breaking the layout when many players show up */
+      align-self: stretch;
+      min-height: 0;
       width: 100%;
-      max-width: 240px;
+      max-width: 260px;
     }
     .lb-slot {
       display: block;
       width: 100%;
+      flex: 0 1 auto;
+      min-height: 0;
+      overflow: hidden;
     }
     .game-bottom {
+      flex: none;
       flex-direction: row;
       gap: 24px;
       padding-bottom: 0;

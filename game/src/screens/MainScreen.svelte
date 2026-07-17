@@ -5,7 +5,7 @@
   import CollectionOverlay from '../components/CollectionOverlay.svelte';
   import { levelNumber, streak, startGame, settingsOpen, tutorialDone } from '../lib/game';
   import { leaderboardType, showNativePopup } from '../lib/leaderboard';
-  import { mainHeroUrl, mainLeavesUrl, mainButterflyUrl, mainPawtrailUrl } from '../lib/skin';
+  import { mainHeroUrl, mainButterflyUrl, mainPawtrailUrl } from '../lib/skin';
 
   let showHow = false;
   let showBoard = false;
@@ -18,8 +18,7 @@
 </script>
 
 <section class="main">
-  <!-- decor cut from the reference: leaves (top-left), butterfly trail, paw trail -->
-  <img class="deco leaves" src={mainLeavesUrl} alt="" draggable="false" />
+  <!-- decor cut from the reference: butterfly trail, paw trail -->
   <img class="deco butterfly" src={mainButterflyUrl} alt="" draggable="false" />
   <img class="deco pawtrail" src={mainPawtrailUrl} alt="" draggable="false" />
 
@@ -82,7 +81,9 @@
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: 24px 22px 34px;
+    /* base spacing, expanded to clear device safe areas (notch / rounded corners) */
+    padding: max(24px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right))
+      max(34px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left));
     background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
     overflow: hidden;
   }
@@ -94,11 +95,6 @@
     pointer-events: none;
     user-select: none;
     -webkit-user-select: none;
-  }
-  .leaves {
-    top: 0;
-    left: 0;
-    width: 53%;
   }
   .butterfly {
     top: 17%;
@@ -115,6 +111,7 @@
   }
   .top-icons {
     width: 100%;
+    flex: none;
     display: flex;
     justify-content: space-between;
     z-index: 1;
@@ -156,11 +153,28 @@
     height: 25px;
   }
   .hero {
-    width: min(78%, 340px);
+    /* The logo is the ONLY flexible element in the column: the top icons and the
+       bottom controls are `flex: none`, so when the screen gets too short the
+       logo is what shrinks (object-fit keeps its aspect ratio) — it starts
+       giving up space exactly when the bottom buttons would otherwise be pushed
+       off-screen, and stays at its natural size (capped by max-width) otherwise. */
+    flex: 0 1 auto;
+    /* min-height sets an explicit floor (also overrides the implicit auto-min
+       that would otherwise block shrinking): the logo scales down as the screen
+       gets short but never below this size. min-width:0 lets width follow the
+       aspect ratio. */
+    min-height: 140px;
+    min-width: 0;
+    width: auto;
+    height: auto;
+    max-width: min(78%, 340px);
+    max-height: 100%;
+    object-fit: contain;
     z-index: 1;
   }
   .main-bottom {
     width: 100%;
+    flex: none;
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -219,5 +233,26 @@
     font-weight: 800;
     font-size: 15px;
     color: #e7f2bb;
+  }
+  /* Landscape / desktop: keep the menu as a cohesive centered column instead of
+     stretching the phone layout across the full width; the full-bleed body
+     gradient fills the sides (cap-and-center). */
+  @media (min-aspect-ratio: 1 / 1) {
+    .main {
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 620px;
+      padding: max(28px, env(safe-area-inset-top)) max(26px, env(safe-area-inset-right))
+        max(40px, env(safe-area-inset-bottom)) max(26px, env(safe-area-inset-left));
+    }
+    .hero {
+      max-width: min(72%, 420px);
+    }
+    .main-bottom {
+      max-width: 520px;
+      gap: 26px;
+    }
   }
 </style>

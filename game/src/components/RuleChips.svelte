@@ -27,7 +27,8 @@
           <rect {x} {y} width="10" height="10" rx="3" fill="var(--surface-2)" />
         {/each}
       {/each}
-      {#each [[1, 1], [25, 13], [13, 25]] as [x, y]}
+      <!-- paws mark the rest of the cat's row (top) and column (middle) -->
+      {#each [[1, 1], [25, 1], [13, 13], [13, 25]] as [x, y]}
         <use href="#ic-paw" x={x + 2} y={y + 2} width="6" height="6" class="mini-paw" />
       {/each}
       <image href={chipCat} x="12" y="0" width="12" height="12" />
@@ -48,6 +49,17 @@
     </svg>
     <span>Cats cannot touch</span>
   </div>
+  <!-- Controls hint — landscape only (there is room in the side column) -->
+  <div class="rule-chip ctrl">
+    <svg class="ctrl-ill" viewBox="0 0 22 44" aria-hidden="true">
+      <!-- row 1: a cell with a paw (mark) -->
+      <rect x="2" y="2" width="18" height="18" rx="4" fill="var(--surface-2)" />
+      <use href="#ic-paw" x="5" y="5" width="12" height="12" class="mini-paw" />
+      <!-- row 2: the cat head (place a cat) -->
+      <image href={chipCat} x="2" y="24" width="18" height="18" />
+    </svg>
+    <span>Tap to mark a cell<br />Long-tap or double-tap to place a cat</span>
+  </div>
 </div>
 
 <style>
@@ -55,8 +67,8 @@
     display: flex;
     gap: 8px;
     justify-content: center;
-    /* align with the board footprint (kc_reference): same max width, centered */
-    max-width: 372px;
+    /* roughly align with the (now fluid) board footprint in portrait, centered */
+    max-width: 460px;
     margin: 0 auto;
     width: 100%;
   }
@@ -79,10 +91,19 @@
   .mini-paw {
     color: rgba(63, 36, 26, 0.6);
   }
+  /* controls hint chip: only shown in the landscape side column */
+  .ctrl {
+    display: none;
+  }
   .rule-chip svg {
     width: 46px;
     height: 46px;
     flex: none;
+  }
+  /* controls chip: two stacked cells (paw over cat head) */
+  .rule-chip svg.ctrl-ill {
+    width: 26px;
+    height: 52px;
   }
   /* Portrait: when vertical space is tight, shrink the chips (font, padding,
      mini-grid) with the viewport height so they don't push the board off-screen. */
@@ -105,6 +126,9 @@
     }
     .rule-chip {
       flex: none;
+    }
+    .ctrl {
+      display: flex;
     }
   }
 </style>

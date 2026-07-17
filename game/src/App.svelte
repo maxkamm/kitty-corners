@@ -6,12 +6,22 @@
   import SettingsOverlay from './screens/SettingsOverlay.svelte';
   import DefeatScreen from './screens/DefeatScreen.svelte';
   import VictoryScreen from './screens/VictoryScreen.svelte';
+  import { onMount } from 'svelte';
   import { screen, settingsOpen } from './lib/game';
   import { darkMode } from './lib/settings'; // also initializes persisted settings side-effects
+  import { startMusic } from './lib/audio';
 
   // Theme: token sets (:root / .dark). Follows the system until the player
   // flips the toggle in Settings (lib/settings.ts resolves the preference).
   darkMode.subscribe((dark) => document.documentElement.classList.toggle('dark', dark));
+
+  // Browsers block audio until a user gesture — start the music on the first tap
+  // (it's a no-op if the Music setting is off).
+  onMount(() => {
+    const kick = (): void => startMusic();
+    window.addEventListener('pointerdown', kick, { once: true });
+    return () => window.removeEventListener('pointerdown', kick);
+  });
 </script>
 
 <Icons />
@@ -45,14 +55,17 @@
     height: 100dvh;
     max-width: 480px;
     margin: 0 auto;
-    background: var(--bg);
+    /* transparent: the full-bleed body gradient shows through, so the centered
+       stage never reads as a floating card on wide screens. */
+    background: transparent;
     overflow: hidden;
     transition: background 0.3s;
   }
-  /* Desktop / landscape: let the game use the horizontal space (Playgama desktop reqs). */
+  /* Desktop / landscape: let the game use the horizontal space (Playgama desktop reqs).
+     Cap-and-center: above this width the body gradient fills the sides (full-bleed). */
   @media (min-aspect-ratio: 1 / 1) {
     .stage {
-      max-width: min(1100px, 100%);
+      max-width: min(1240px, 100%);
     }
   }
   .screen-host {

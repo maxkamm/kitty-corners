@@ -44,8 +44,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 32px 26px;
+    /* safe center: centers when it fits, top-aligns + scrolls on short screens
+       so the buttons are never clipped (matches the main-menu adaptivity) */
+    justify-content: safe center;
+    overflow-y: auto;
+    /* base spacing, expanded to clear device safe areas (notch / rounded corners) */
+    padding: max(32px, env(safe-area-inset-top)) max(26px, env(safe-area-inset-right))
+      max(32px, env(safe-area-inset-bottom)) max(26px, env(safe-area-inset-left));
     gap: 14px;
     text-align: center;
     background: linear-gradient(180deg, #fcebd8 0%, #fdeedd 45%, #fbe8d1 100%);
@@ -54,8 +59,14 @@
     background: linear-gradient(180deg, #2a2433 0%, #241f2b 60%, #1e1a26 100%);
   }
   .mascot {
-    width: 144px;
-    height: 144px;
+    /* shrinks on short screens (down to the floor) so it never pushes the
+       buttons off-screen; natural 144px when there is room */
+    flex: 0 1 auto;
+    min-height: 92px;
+    width: auto;
+    height: auto;
+    max-width: 144px;
+    max-height: 144px;
     object-fit: contain;
     filter: drop-shadow(0 8px 12px rgba(125, 74, 73, 0.22));
     animation: mascot-droop 0.7s cubic-bezier(0.25, 0.9, 0.4, 1) both;

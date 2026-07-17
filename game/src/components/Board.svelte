@@ -4,16 +4,20 @@
    * - CSS Grid with BOTH grid-template-columns and -rows = repeat(N,1fr);
    *   cell content (SVG) positioned absolute in % — see the intrinsic-size bug note in GDD §7.
    * - Region borders: inset box-shadow per differing neighbour (ref: buildBoard() in mockup).
-   * - Tap = toggle X (tap on a cat removes it). Long-press ~380ms with charging ring = commit a cat.
+   * - Tap = toggle X (tap on a cat removes it). Long-press ~380ms with charging ring,
+   *   double-tap, or right-click = commit a cat.
    */
   import type { LevelDef, CellState } from '../lib/types';
   import { tapCell, commitCat } from '../lib/game';
   import { catForRegion } from '../lib/skin';
+  import { spriteForBreed } from '../lib/collectionSprites';
 
   export let level: LevelDef;
   export let cells: CellState[];
   export let errorCells: number[] = [];
   export let hintCells: number[] = [];
+  /** cells highlighted as the hint's reason (quiet secondary layer, §5.2) */
+  export let causeCells: number[] = [];
   /** cells glowing persistently while the tutorial waits for them */
   export let guideCells: number[] = [];
   /** input handlers — default to the real game; the tutorial passes its own */
@@ -27,9 +31,15 @@
   export let introOrigin = -1;
   /** available height from the parent, px (KC-1: board must fit short/landscape viewports) */
   export let maxPx = 0;
+  /** region id → breed id for the cat collection (GDD §10); empty = legacy region skin */
+  export let breeds: Record<string, string> = {};
 
-  /** KC-2: larger boards may grow beyond 372px so cells reach 40px+ on wide screens */
-  $: basePx = n >= 9 ? n * 44 : 372;
+  /** Desktop-adaptive sizing (KC-2): the board is the largest square that fits both
+   *  its column (width, via `width:min(...,100%)`) and the available height (`maxPx`).
+   *  We no longer hard-cap the board at 372px — instead we cap the *cell* size so the
+   *  field scales up on large displays without cats becoming oversized on 4K. */
+  const MAX_CELL_PX = 80;
+  $: basePx = n * MAX_CELL_PX;
   $: sizeLimit = maxPx > 0 ? Math.min(basePx, maxPx) : basePx;
 
   /* art skin v2 (kc_reference): flat tiles on the page bg, gap ≈3.7% of a cell,
@@ -68,6 +78,10 @@
   const LONG_PRESS_MS = 380;
   const RING_DELAY_MS = 90; // KC-10: don't flash the ring on short taps
   const MOVE_CANCEL_PX = 12;
+  const DOUBLE_TAP_MS = 300; // two quick taps on the same cell commit a cat
+
+  let lastTapTime = 0;
+  let lastTapIndex = -1;
 
   let charging = -1; // cell index with active charge ring
   let pressTimer: ReturnType<typeof setTimeout> | undefined;
@@ -84,9 +98,12 @@
     return `var(--${level.colors?.[id] ?? id})`;
   }
 
-  /** cat sprite for the cell — the breed is tied to the region (art skin) */
+  /** cat sprite for the cell. With the collection feature (GDD §10) the breed comes
+   *  from `breeds[regionId]`; otherwise it falls back to the legacy region skin. */
   function catSrc(i: number, joyful: boolean): string {
-    const sprite = catForRegion(level.regions[Math.floor(i / n)][i % n]);
+    const regionId = level.regions[Math.floor(i / n)][i % n];
+    const breedId = breeds[regionId];
+    const sprite = (breedId && spriteForBreed(breedId)) || catForRegion(regionId);
     return joyful ? sprite.happy : sprite.idle;
   }
 
@@ -129,7 +146,18 @@
   function onUp(i: number): void {
     const wasPressed = pressedIndex === i && !committed;
     cancelPress();
-    if (wasPressed) onTap(i);
+    if (!wasPressed) return;
+    const now = Date.now();
+    // Double-tap = commit a cat (alternative to long-press / right-click).
+    if (i === lastTapIndex && now - lastTapTime < DOUBLE_TAP_MS && cells[i] !== 'cat') {
+      lastTapTime = 0;
+      lastTapIndex = -1;
+      onCommit(i);
+      return;
+    }
+    lastTapTime = now;
+    lastTapIndex = i;
+    onTap(i);
   }
 
   function onMove(e: PointerEvent): void {
@@ -162,6 +190,7 @@
         class="cell"
         class:error={errorCells.includes(i)}
         class:hint={hintCells.includes(i)}
+        class:cause={causeCells.includes(i)}
         class:guide={guideCells.includes(i)}
         role="gridcell"
         tabindex="-1"
@@ -391,18 +420,43 @@
   @keyframes err-fade {
     to { opacity: 0; }
   }
+  /* hint TARGET (the cell to act on): a strong, persistent accent ring + fill + halo
+     so it clearly stands out from the quiet dashed 'cause' cells around it. */
   .cell.hint::after {
     content: '';
     position: absolute;
     inset: 6%;
     border: 3px solid var(--accent);
     border-radius: 20%;
-    animation: hint-pulse 0.8s ease-in-out 3;
+    /* white fill + white inner ring keep the target visible on ANY region colour
+       (an accent-only glow was invisible on the orange regions) */
+    background: rgba(255, 255, 255, 0.34);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 5px rgba(224, 118, 59, 0.55);
+    animation: hint-glow 0.9s ease-in-out infinite;
     pointer-events: none;
+  }
+  @keyframes hint-glow {
+    0%, 100% { opacity: 0.78; transform: scale(0.97); }
+    50% { opacity: 1; transform: scale(1.03); }
   }
   @keyframes hint-pulse {
     0%, 100% { opacity: 0.35; transform: scale(0.96); }
     50% { opacity: 1; transform: scale(1); }
+  }
+  /* hint 'cause' layer (§5.2): quieter dashed outline explaining WHY the step holds */
+  .cell.cause::after {
+    content: '';
+    position: absolute;
+    inset: 4%;
+    border: 2px dashed var(--ink);
+    border-radius: 20%;
+    opacity: 0.45;
+    animation: cause-pulse 1.1s ease-in-out 3;
+    pointer-events: none;
+  }
+  @keyframes cause-pulse {
+    0%, 100% { opacity: 0.22; }
+    50% { opacity: 0.5; }
   }
   /* tutorial: persistent gentle glow until the player acts on the cell */
   .cell.guide::after {
@@ -420,6 +474,7 @@
     .cell .cat.given-delay,
     .cell.error,
     .cell.hint::after,
+    .cell.cause::after,
     .pop i,
     .xmark.fade-out,
     .xmark.intro {

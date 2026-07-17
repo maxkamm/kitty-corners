@@ -23,7 +23,7 @@ export interface StorageAdapter {
 const PREFIX = 'kc.';
 
 /** Every persisted key the game uses (game.ts progress + settings.ts). */
-const KEYS = ['level', 'streak', 'bestStreak', 'sound', 'vibration', 'patternMarks', 'tutorialDone', 'totalScore', 'theme'] as const;
+const KEYS = ['level', 'streak', 'bestStreak', 'sound','music',  'vibration', 'patternMarks', 'tutorialDone', 'totalScore', 'theme', 'collection'] as const;
 
 class BridgeStorageAdapter implements StorageAdapter {
   /** Raw JSON strings keyed by unprefixed key — mirrors localStorage semantics. */
@@ -37,7 +37,25 @@ class BridgeStorageAdapter implements StorageAdapter {
         const values = (await b.storage.get(prefixed)) as unknown[];
         KEYS.forEach((k, i) => {
           const v = Array.isArray(values) ? values[i] : undefined;
-          if (v !== null && v !== undefined) this.cache.set(k, String(v));
+          if (v === null || v === undefined) return;
+          // The Bridge may return values already JSON-deserialized (e.g. objects
+          // and numbers) rather than the raw string we stored. `String(v)` would
+          // turn an object into "[object Object]", breaking JSON.parse in get()
+          // and wiping object values like the cat collection. Normalise back to a
+          // JSON string get() can parse — treating a returned string as raw JSON
+          // when it parses, otherwise JSON-encoding it.
+          let raw: string;
+          if (typeof v === 'string') {
+            try {
+              JSON.parse(v);
+              raw = v;
+            } catch {
+              raw = JSON.stringify(v);
+            }
+          } else {
+            raw = JSON.stringify(v);
+          }
+          this.cache.set(k, raw);
         });
         return;
       } catch (error) {
