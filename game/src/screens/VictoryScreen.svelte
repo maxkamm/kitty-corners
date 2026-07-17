@@ -5,7 +5,6 @@
   import CollectionRecap from '../components/CollectionRecap.svelte';
   import { winLevel, winStreak, bestStreak, winTime, winScore, totalScore, nextLevel } from '../lib/game';
   import { leaderboardType, showNativePopup, winRanks } from '../lib/leaderboard';
-  import { catHappyUrl } from '../lib/skin';
 
   const fmtNum = (n: number): string => n.toLocaleString('en-US');
 
@@ -43,7 +42,6 @@
     {/each}
   </div>
 
-  <img class="mascot" src={catHappyUrl} alt="" draggable="false" />
   <h1 class="big-title">Level {$winLevel + 1} done!</h1>
 
   <div class="win-stats">
@@ -64,13 +62,23 @@
         <span class="node next"><span class="n">{$winStreak + 1}</span></span>
       </div>
       <div class="streak-best">Best streak · <b>{$bestStreak}</b></div>
+
+      <div class="stat-rule"></div>
+      <div class="stat-row">
+        <div class="stat">
+          <span class="stat-big gain">+{fmtNum($winScore)}</span>
+          <span class="stat-lbl">points</span>
+        </div>
+        <div class="stat">
+          <span class="stat-lbl">Total</span>
+          <span class="stat-big">{fmtNum($totalScore)}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-lbl">Your time</span>
+          <span class="stat-big">{fmtTime($winTime)}</span>
+        </div>
+      </div>
     </div>
-    <div class="score-pill">
-      <span class="gain">+{fmtNum($winScore)}</span>
-      <span class="lbl">points</span>
-      <span class="total">Total · <b>{fmtNum($totalScore)}</b></span>
-    </div>
-    <div class="time-pill"><span class="lbl">Your time</span> {fmtTime($winTime)}</div>
 
     <!-- Cat collection recap (GDD §10.5): compact strip of breeds discovered this level -->
     <CollectionRecap />
@@ -112,8 +120,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* safe center: centers when it fits, aligns to top (no clipping) when the
-       stack is taller than the screen; scrolls as a last resort */
+    /* safe center: centered when it fits, top-aligned + scrolls on short screens
+       so the Next-level button is never clipped (matches the main-menu adaptivity) */
     justify-content: safe center;
     /* base spacing, expanded to clear device safe areas (notch / rounded corners) */
     padding: max(24px, env(safe-area-inset-top)) max(26px, env(safe-area-inset-right))
@@ -126,37 +134,6 @@
   }
   :global(.dark) .win {
     background: linear-gradient(180deg, #2a2433 0%, #241f2b 60%, #1e1a26 100%);
-  }
-  .mascot {
-    width: 132px;
-    height: 132px;
-    flex: none;
-    object-fit: contain;
-    filter: drop-shadow(0 8px 12px rgba(125, 74, 73, 0.22));
-    transform-origin: 50% 85%;
-    animation: mascot-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both,
-      mascot-sway 2.6s ease-in-out 0.6s infinite;
-  }
-  @keyframes mascot-in {
-    0% {
-      transform: scale(0.3) translateY(20%);
-      opacity: 0;
-    }
-    60% {
-      transform: scale(1.08, 0.9);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-  @keyframes mascot-sway {
-    0%, 100% {
-      transform: rotate(-2deg);
-    }
-    50% {
-      transform: rotate(2deg);
-    }
   }
   .win-stats {
     display: flex;
@@ -171,11 +148,11 @@
     background: var(--surface);
     border-radius: 22px;
     box-shadow: var(--shadow-pop);
-    padding: 14px 18px 20px;
+    padding: 12px 18px 14px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 3px;
     position: relative;
     z-index: 1;
   }
@@ -183,6 +160,7 @@
     display: flex;
     gap: 6px;
     align-items: center;
+    font-family: 'Baloo 2', sans-serif; /* match the "New cats this level" header */
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 2px;
@@ -195,14 +173,14 @@
     gap: 8px;
   }
   .flame-big {
-    width: 40px;
-    height: 46px;
+    width: 33px;
+    height: 38px;
     filter: drop-shadow(0 3px 8px rgba(255, 148, 87, 0.5));
   }
   .num {
     font-family: 'Baloo 2', sans-serif;
     font-weight: 800;
-    font-size: 54px;
+    font-size: 42px;
     line-height: 0.9;
   }
   .plus-pop {
@@ -226,8 +204,8 @@
     display: flex;
     align-items: center;
     width: 100%;
-    margin-top: 8px;
-    margin-bottom: 12px;
+    margin-top: 4px;
+    margin-bottom: 8px;
   }
   .node {
     width: 24px;
@@ -301,54 +279,46 @@
   .streak-best b {
     color: var(--ink);
   }
-  .score-pill {
+  /* stats row inside the streak card: points | total | time (ref layout) */
+  .stat-rule {
+    width: 100%;
+    height: 1.5px;
+    background: var(--line);
+    border-radius: 2px;
+    margin: 8px 0;
+  }
+  .stat-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    background: var(--surface);
-    border-radius: 99px;
-    padding: 9px 18px;
-    box-shadow: var(--shadow-pop);
-    font-weight: 800;
-    font-size: 14px;
-    z-index: 1;
+    justify-content: space-between;
+    width: 100%;
   }
-  .score-pill .gain {
+  .stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 0 6px;
+  }
+  .stat + .stat {
+    border-left: 1.5px solid var(--line);
+  }
+  .stat-big {
     font-family: 'Baloo 2', sans-serif;
     font-weight: 800;
-    font-size: 20px;
+    font-size: 19px;
+    color: var(--ink);
+    line-height: 1.05;
+  }
+  .stat-big.gain {
     color: var(--good);
     animation: pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.45s both;
   }
-  .score-pill .lbl {
-    color: var(--ink-soft);
-    font-weight: 700;
-  }
-  .score-pill .total {
-    color: var(--ink-soft);
-    font-weight: 700;
+  .stat-lbl {
     font-size: 12px;
-    border-left: 1.5px solid var(--line);
-    padding-left: 10px;
-  }
-  .score-pill .total b {
-    color: var(--ink);
-  }
-  .time-pill {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    background: var(--surface);
-    border-radius: 99px;
-    padding: 9px 18px;
-    box-shadow: var(--shadow-pop);
-    font-weight: 800;
-    font-size: 14px;
-    z-index: 1;
-  }
-  .time-pill .lbl {
-    color: var(--ink-soft);
     font-weight: 700;
+    color: var(--ink-soft);
   }
   .next-btn {
     width: 100%;
@@ -360,7 +330,10 @@
   .rank-strip {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 7px;
+    width: 100%;
+    max-width: 300px;
     background: var(--surface);
     border-radius: 99px;
     padding: 9px 18px;
@@ -430,11 +403,15 @@
   }
   @media (min-aspect-ratio: 1 / 1) {
     .lb-side {
-      display: block;
+      /* definite height (top+bottom) + centering so the panel scrolls inside
+         instead of overflowing when the standings are long */
+      display: flex;
+      align-items: center;
+      justify-content: center;
       position: absolute;
       right: max(28px, env(safe-area-inset-right));
-      top: 50%;
-      transform: translateY(-50%);
+      top: 24px;
+      bottom: 24px;
       width: 240px;
       z-index: 1;
     }
@@ -472,9 +449,8 @@
       display: none;
     }
     .plus-pop,
-    .score-pill .gain,
+    .stat-big.gain,
     .node.current,
-    .mascot,
     .rank-strip,
     .rank-strip .was,
     .rank-strip .now.up {
