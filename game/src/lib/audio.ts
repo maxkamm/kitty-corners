@@ -2,7 +2,7 @@
 
 /** Music track lives in public/ (served next to index.html) rather than inlined:
  *  a 1.3 MB base64 blob in the JS would choke the release obfuscator. */
-const musicUrl = import.meta.env.BASE_URL + 'music.mp3';
+const musicUrl = (import.meta.env?.BASE_URL ?? '/') + 'music.mp3';
 
 let ctx: AudioContext | null = null;
 /** User's Sound setting (GDD §5.3). */

@@ -82,6 +82,9 @@
     flex-direction: column;
     gap: 12px;
     position: relative;
+    /* never taller than the viewport; scroll on short screens */
+    max-height: calc(100% - 32px);
+    overflow-y: auto;
   }
   /* squircle close (matches the Collection screen; pressability §6.7) */
   .close {

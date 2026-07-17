@@ -68,13 +68,23 @@ export async function getEntries(playerTotal: number): Promise<LeaderboardEntry[
   if (!b?.leaderboards || b.leaderboards.type !== 'in_game') return null;
   try {
     const raw = await b.leaderboards.getEntries(LEADERBOARD_ID);
-    return raw.map((e: BridgeLeaderboardEntry) => ({
+    // Best-effort "this is you": prefer the platform player id when exposed…
+    const selfId = (b as unknown as { player?: { id?: string } }).player?.id;
+    const entries = raw.map((e: BridgeLeaderboardEntry) => ({
       id: e.id,
       name: e.name || 'Player',
       photo: e.photo || '',
       score: Number(e.score) || 0,
-      rank: Number(e.rank) || 0
+      rank: Number(e.rank) || 0,
+      self: selfId != null && String(e.id) === String(selfId)
     }));
+    // …otherwise flag the single row whose score equals the total we submitted
+    // (that's the player's own entry) so it can be highlighted.
+    if (!entries.some((e) => e.self)) {
+      const mine = entries.filter((e) => e.score === playerTotal);
+      if (mine.length === 1) mine[0].self = true;
+    }
+    return entries;
   } catch (error) {
     console.warn('[leaderboard] getEntries failed', error);
     return null;
@@ -165,8 +175,15 @@ function mockEntries(playerTotal: number): LeaderboardEntry[] {
     { name: 'Whiskers', score: 48210 },
     { name: 'Mittens', score: 31475 },
     { name: 'Purrfessor', score: 19980 },
+    { name: 'Sir Pounce', score: 14620 },
+    { name: 'Biscuit', score: 11005 },
     { name: 'Naptime', score: 8340 },
-    { name: 'Catnip Carl', score: 2115 }
+    { name: 'Marmalade', score: 6120 },
+    { name: 'Shadow', score: 4780 },
+    { name: 'Catnip Carl', score: 2115 },
+    { name: 'Pixel', score: 1340 },
+    { name: 'Tofu', score: 760 },
+    { name: 'Waffles', score: 430 }
   ];
   const all = [
     ...cast.map((c, i) => ({ id: `mock-${i}`, name: c.name, photo: '', score: c.score, rank: 0 })),

@@ -111,6 +111,7 @@
   }
   .top-icons {
     width: 100%;
+    flex: none;
     display: flex;
     justify-content: space-between;
     z-index: 1;
@@ -152,11 +153,28 @@
     height: 25px;
   }
   .hero {
-    width: min(78%, 340px);
+    /* The logo is the ONLY flexible element in the column: the top icons and the
+       bottom controls are `flex: none`, so when the screen gets too short the
+       logo is what shrinks (object-fit keeps its aspect ratio) — it starts
+       giving up space exactly when the bottom buttons would otherwise be pushed
+       off-screen, and stays at its natural size (capped by max-width) otherwise. */
+    flex: 0 1 auto;
+    /* min-height sets an explicit floor (also overrides the implicit auto-min
+       that would otherwise block shrinking): the logo scales down as the screen
+       gets short but never below this size. min-width:0 lets width follow the
+       aspect ratio. */
+    min-height: 140px;
+    min-width: 0;
+    width: auto;
+    height: auto;
+    max-width: min(78%, 340px);
+    max-height: 100%;
+    object-fit: contain;
     z-index: 1;
   }
   .main-bottom {
     width: 100%;
+    flex: none;
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -230,7 +248,7 @@
         max(40px, env(safe-area-inset-bottom)) max(26px, env(safe-area-inset-left));
     }
     .hero {
-      width: min(72%, 420px);
+      max-width: min(72%, 420px);
     }
     .main-bottom {
       max-width: 520px;

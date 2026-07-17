@@ -18,7 +18,7 @@
 
 {#if items.length}
   <div class="recap">
-    <div class="rt">✦ New cats this level ✦</div>
+    <div class="rt">New cats this level</div>
     <div class="row">
       {#each items as it}
         <div class="mini">
@@ -43,9 +43,8 @@
     width: 100%;
     max-width: 300px;
     background: var(--surface);
-    border: 1.5px dashed var(--accent);
-    border-radius: 18px;
-    padding: 11px 12px 13px;
+    border-radius: 22px;
+    padding: 14px 16px 16px;
     box-shadow: var(--shadow-pop);
     z-index: 1;
     animation: recap-in 0.4s ease 0.3s both;
@@ -53,78 +52,84 @@
   .rt {
     font-family: 'Baloo 2', sans-serif;
     font-weight: 800;
-    font-size: 12px;
-    letter-spacing: 0.4px;
+    font-size: 11px;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--accent-edge);
+    color: var(--ink-soft);
     text-align: center;
-    margin-bottom: 9px;
+    margin-bottom: 12px;
   }
   .row {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 16px;
   }
   .mini {
-    width: 62px;
+    width: 96px;
     text-align: center;
     position: relative;
   }
   .mp {
-    width: 54px;
-    height: 54px;
-    margin: 0 auto 4px;
-    border-radius: 16px; /* squircle */
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 8px;
+    border-radius: 22px; /* squircle */
     background: color-mix(in srgb, var(--rar) 16%, var(--surface));
+    box-shadow: inset 0 -5px 12px rgba(0, 0, 0, 0.06);
     display: flex;
     align-items: center;
     justify-content: center;
   }
   .mp img {
-    width: 46px;
-    height: 46px;
+    width: 66px;
+    height: 66px;
     object-fit: contain;
   }
   .mp .q {
     font-family: 'Baloo 2', sans-serif;
     font-weight: 800;
-    font-size: 22px;
+    font-size: 30px;
     color: #b7ac9c;
   }
   .nm {
-    font-size: 10px;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 16px;
     font-weight: 800;
-    line-height: 1.1;
+    line-height: 1.15;
     color: var(--ink);
   }
   .rl {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    margin-top: 2px;
-    font-size: 9px;
+    gap: 5px;
+    margin-top: 3px;
+    font-size: 11px;
     font-weight: 800;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
     color: var(--ink-soft);
   }
   .dot {
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
   }
   .newpip {
     position: absolute;
-    top: -5px;
-    right: 4px;
+    top: -6px;
+    right: 8px;
     background: var(--accent);
     color: #fff;
     font-family: 'Baloo 2', sans-serif;
     font-weight: 800;
-    font-size: 8px;
-    padding: 2px 5px;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
     border-radius: 999px;
+    border-bottom: 2px solid var(--accent-edge);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
     z-index: 2;
   }
   @keyframes recap-in {

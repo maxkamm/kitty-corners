@@ -155,7 +155,18 @@ export const collection = writable<CollectionState>(loadState());
  */
 export function initCollectionPersistence(): void {
   collection.set(loadState());
-  collection.subscribe((v) => storage.set('collection', v));
+  // Skip the initial subscribe emission: it is just the value we loaded from
+  // storage, so re-writing it is pointless — and if a hydrate hiccup left the
+  // store momentarily empty, writing that empty value back would CLOBBER the
+  // saved collection. Only persist genuine changes (discoveries, mark-seen).
+  let first = true;
+  collection.subscribe((v) => {
+    if (first) {
+      first = false;
+      return;
+    }
+    storage.set('collection', v);
+  });
 }
 
 export function isDiscovered(id: string): boolean {

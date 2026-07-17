@@ -76,7 +76,7 @@
       </div>
       <div class="rule-row">
         <svg class="pad" viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-cathead" /></svg>
-        <p><b>Press and hold</b> (~half a second) to settle a cat. On desktop, right-click works too.</p>
+        <p><b>Press and hold</b> (~half a second) or <b>double-tap</b> to settle a cat. On desktop, right-click works too.</p>
       </div>
     {:else}
       <div class="rule-row">

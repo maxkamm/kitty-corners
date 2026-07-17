@@ -4,7 +4,8 @@
    * - CSS Grid with BOTH grid-template-columns and -rows = repeat(N,1fr);
    *   cell content (SVG) positioned absolute in % — see the intrinsic-size bug note in GDD §7.
    * - Region borders: inset box-shadow per differing neighbour (ref: buildBoard() in mockup).
-   * - Tap = toggle X (tap on a cat removes it). Long-press ~380ms with charging ring = commit a cat.
+   * - Tap = toggle X (tap on a cat removes it). Long-press ~380ms with charging ring,
+   *   double-tap, or right-click = commit a cat.
    */
   import type { LevelDef, CellState } from '../lib/types';
   import { tapCell, commitCat } from '../lib/game';
@@ -77,6 +78,10 @@
   const LONG_PRESS_MS = 380;
   const RING_DELAY_MS = 90; // KC-10: don't flash the ring on short taps
   const MOVE_CANCEL_PX = 12;
+  const DOUBLE_TAP_MS = 300; // two quick taps on the same cell commit a cat
+
+  let lastTapTime = 0;
+  let lastTapIndex = -1;
 
   let charging = -1; // cell index with active charge ring
   let pressTimer: ReturnType<typeof setTimeout> | undefined;
@@ -141,7 +146,18 @@
   function onUp(i: number): void {
     const wasPressed = pressedIndex === i && !committed;
     cancelPress();
-    if (wasPressed) onTap(i);
+    if (!wasPressed) return;
+    const now = Date.now();
+    // Double-tap = commit a cat (alternative to long-press / right-click).
+    if (i === lastTapIndex && now - lastTapTime < DOUBLE_TAP_MS && cells[i] !== 'cat') {
+      lastTapTime = 0;
+      lastTapIndex = -1;
+      onCommit(i);
+      return;
+    }
+    lastTapTime = now;
+    lastTapIndex = i;
+    onTap(i);
   }
 
   function onMove(e: PointerEvent): void {

@@ -49,6 +49,17 @@
     </svg>
     <span>Cats cannot touch</span>
   </div>
+  <!-- Controls hint — landscape only (there is room in the side column) -->
+  <div class="rule-chip ctrl">
+    <svg class="ctrl-ill" viewBox="0 0 22 44" aria-hidden="true">
+      <!-- row 1: a cell with a paw (mark) -->
+      <rect x="2" y="2" width="18" height="18" rx="4" fill="var(--surface-2)" />
+      <use href="#ic-paw" x="5" y="5" width="12" height="12" class="mini-paw" />
+      <!-- row 2: the cat head (place a cat) -->
+      <image href={chipCat} x="2" y="24" width="18" height="18" />
+    </svg>
+    <span>Tap to mark a cell<br />Long-tap or double-tap to place a cat</span>
+  </div>
 </div>
 
 <style>
@@ -80,10 +91,19 @@
   .mini-paw {
     color: rgba(63, 36, 26, 0.6);
   }
+  /* controls hint chip: only shown in the landscape side column */
+  .ctrl {
+    display: none;
+  }
   .rule-chip svg {
     width: 46px;
     height: 46px;
     flex: none;
+  }
+  /* controls chip: two stacked cells (paw over cat head) */
+  .rule-chip svg.ctrl-ill {
+    width: 26px;
+    height: 52px;
   }
   /* Portrait: when vertical space is tight, shrink the chips (font, padding,
      mini-grid) with the viewport height so they don't push the board off-screen. */
@@ -106,6 +126,9 @@
     }
     .rule-chip {
       flex: none;
+    }
+    .ctrl {
+      display: flex;
     }
   }
 </style>

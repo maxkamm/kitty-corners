@@ -41,7 +41,7 @@
           {#if e.photo}
             <img class="avatar" src={e.photo} alt="" loading="lazy" />
           {:else}
-            <span class="avatar ph"><svg><use href="#ic-paw" /></svg></span>
+            <span class="avatar ph"><svg><use href="#ic-cathead-line" /></svg></span>
           {/if}
           <span class="name">{e.name}</span>
           <span class="pts">{fmtNum(e.score)}</span>
@@ -59,6 +59,10 @@
   .panel {
     position: relative;
     width: 100%;
+    /* never taller than the column it sits in — the rows scroll instead of the
+       whole panel growing and breaking the desktop layout */
+    max-height: 100%;
+    min-height: 0;
     background: var(--surface);
     border: 1.5px solid var(--line);
     border-radius: 16px;
@@ -68,6 +72,9 @@
     flex-direction: column;
     gap: 8px;
     /* no overflow clipping: the "+points" chip flies in across the board */
+  }
+  .head {
+    flex: none;
   }
   .head {
     display: flex;
@@ -95,6 +102,13 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
+    /* scroll the standings inside the panel instead of overflowing the column */
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    /* room so the self-row ring/shadow isn't clipped by the scroll box */
+    padding: 2px;
+    margin: -2px;
   }
   .row {
     display: flex;
@@ -128,8 +142,8 @@
     color: var(--accent);
   }
   .avatar {
-    width: 20px;
-    height: 20px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     flex: none;
     object-fit: cover;
@@ -139,10 +153,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
   }
   .avatar.ph svg {
-    width: 11px;
-    height: 11px;
+    width: 23px;
+    height: 23px;
     color: var(--accent);
   }
   .name {
